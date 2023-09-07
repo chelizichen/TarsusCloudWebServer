@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select } from 'antd';
+import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input } from 'antd';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
+import CodeBlock from './HighLightCode';
 
 const UserDashboard = () => {
     const [isRestarting, setIsRestarting] = useState(false);
@@ -9,11 +10,94 @@ const UserDashboard = () => {
     const [selectedDirectory, setSelectedDirectory] = useState(null);
     const [fileList, setFileList] = useState([]);
 
+    const [isFileVisible, setFileVisible] = useState(false);
+    const [fileContent, setFileContent] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedFile, setSelectedFile] = useState('');
+
+
+    const handleNodeClick = (item, selectedKeys) => {
+        console.log('11', item);
+        console.log('22', selectedKeys);
+
+
+        if (item.type === 'file') {
+            setSelectedFile(selectedKeys);
+            setFileContent(`
+import {FastifyReply, FastifyRequest, RouteShorthandOptions} from "fastify";
+import {RouteHandlerMethod} from "fastify/types/route";
+import path from "path";
+import fs from "fs";
+import {Reply, ReplyBody} from "../../../main_control/define";
+
+const routes = process.env.routes_path;
+
+const opts: RouteShorthandOptions = {
+    schema: {
+        response: {
+            200: {
+                type: 'object',
+                properties: {
+                    message: {
+                        type: 'string'
+                    },
+                    code: {
+                        type: "number"
+                    },
+                    data: {
+                        type: "object"
+                    }
+                }
+            }
+        },
+        body: {
+            userId: {
+                type: "string"
+            }
+        }
+    }
+}
+
+type CustomRequest = FastifyRequest<{
+    Body: { userId: string };
+}>
+
+const handleFunc = async (request: CustomRequest, reply: FastifyReply) => {
+    const {userId} = request.body
+
+    return Reply(ReplyBody.success, ReplyBody.success_message, {userId})
+}
+export default [opts, handleFunc]
+
+
+            `); // 模拟文件内容
+            setFileVisible(true);
+        }
+    };
+
+    const handleOk = () => {
+        if (isEditing) {
+            setIsEditing(false);
+            setTimeout(() => {
+                alert('修改成功');
+            }, 2000);
+        } else {
+            setIsModalVisible(false);
+        }
+    };
+
+
+
     const columns = [
         {
             title: 'Node',
             dataIndex: 'node',
             key: 'node',
+            render: (text, record) => (
+                <span>
+                    <div onClick={() => handleViewLog(record.node)} style={{ color: "#1890ff" }}>{record.node}</div>
+                </span>
+            ),
         },
         {
             title: 'Status',
@@ -30,9 +114,8 @@ const UserDashboard = () => {
             key: 'action',
             render: (text, record) => (
                 <span>
-                    <Button type="primary" onClick={() => handleRestart(record.node)} loading={isRestarting}>重启</Button>
-                    <Button style={{ margin: '0 8px' }} onClick={() => handleCheckStatus(record.node)}>查看状态</Button>
-                    <Button onClick={() => handleViewLog(record.node)}>日志</Button>
+                    <Button type="primary" onClick={() => handleRestart(record.node)} loading={isRestarting}>restart</Button>
+                    <Button style={{ margin: '0 8px' }} onClick={() => handleCheckStatus(record.node)}>stats</Button>
                 </span>
             ),
         },
@@ -75,7 +158,8 @@ const UserDashboard = () => {
                 return {
                     title: item.name,
                     key: item.path,
-                    icon: <FolderOutlined />,
+                    type: item.type,
+                    icon: <FolderOutlined className="ant-tree-icon-folder" />,
                     children: renderDirectoryTree(item.children || []),
                 };
             }
@@ -83,7 +167,8 @@ const UserDashboard = () => {
             return {
                 title: item.name,
                 key: item.path,
-                icon: <FileOutlined />,
+                type: item.type,
+                icon: <FileOutlined className="ant-tree-icon-file" />,
             };
         });
 
@@ -160,6 +245,10 @@ const UserDashboard = () => {
         setFileList([]);
     };
 
+    const handleEdit = () => {
+        setIsEditing(true);
+    };
+
     const handleDirectoryChange = (value) => {
         setSelectedDirectory(value);
     };
@@ -167,13 +256,13 @@ const UserDashboard = () => {
     const extractDirectories = (data, parentPath = '') => {
         let dirs = [];
         data.forEach(item => {
-          const currentPath = parentPath ? `${parentPath}/${item.name}` : item.name;
-          if (item.type === 'folder') {
-            dirs.push(currentPath);
-            if (item.children) {
-              dirs = dirs.concat(extractDirectories(item.children, currentPath));
+            const currentPath = parentPath ? `${parentPath}/${item.name}` : item.name;
+            if (item.type === 'folder') {
+                dirs.push(currentPath);
+                if (item.children) {
+                    dirs = dirs.concat(extractDirectories(item.children, currentPath));
+                }
             }
-          }
         });
         return dirs;
     };
@@ -189,7 +278,30 @@ const UserDashboard = () => {
                     showIcon
                     defaultExpandAll
                     treeData={renderDirectoryTree(directoryData)}
+                    onSelect={(selectedKeys, info) => handleNodeClick(info.node, selectedKeys)}
                 />
+                <Modal
+                    title={`文件内容 - ${selectedFile}`}
+                    open={isFileVisible}
+                    onOk={handleOk}
+                    width={'50%'}
+                    onCancel={() => setFileVisible(false)}
+                    footer={[
+                        <Button key="edit" onClick={handleEdit} disabled={isEditing}>
+                            修改
+                        </Button>,
+                        <Button key="submit" type="primary" onClick={handleOk}>
+                            {isEditing ? '确定' : '关闭'}
+                        </Button>,
+                    ]}
+                >
+                    {isEditing ? (
+                        <Input.TextArea value={fileContent} onChange={(e) => setFileContent(e.target.value)} rows={30}/>
+                    ) : (
+                        <CodeBlock code={fileContent} />
+                    )}
+                </Modal>
+
                 <Button type="primary" onClick={showModal} style={{ marginTop: '20px' }}>
                     Upload File
                 </Button>

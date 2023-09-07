@@ -23,9 +23,8 @@ const RouterComponent = () => {
     return (
         <Layout className="layout">
             <Header>
-                <div className="logo" />
                 <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']}>
-                    <Menu.Item key="1" icon={<HomeOutlined />}><Link to="/">Home</Link></Menu.Item>
+                    <Menu.Item key="1" icon={<HomeOutlined />}><Link to="/">TarsusCloud</Link></Menu.Item>
                     <Menu.Item key="2" icon={<UserOutlined />}><Link to="/user">User</Link></Menu.Item>
                     <Menu.Item key="3" icon={<AimOutlined />}> <Link to="/admin">Admin</Link></Menu.Item>
                 </Menu>

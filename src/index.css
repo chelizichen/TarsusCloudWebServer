@@ -11,3 +11,27 @@
   padding: 24px;
   min-height: 380px;
 }
+
+/* 树的总体样式 */
+.ant-tree {
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* 树节点的样式 */
+
+.ant-tree-treenode {
+  margin: 5px 0;
+  padding: 5px;
+  transition: background-color 0.3s;
+}
+
+/* 文件夹图标的颜色 */
+.ant-tree-icon-folder {
+  color: #1890ff;
+}
+
+/* 文件图标的颜色 */
+.ant-tree-icon-file {
+  color: #faad14;
+}
