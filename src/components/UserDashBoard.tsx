@@ -1,15 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input } from 'antd';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from './HighLightCode';
 
 const UserDashboard = () => {
+    // 主逻辑
     const [isRestarting, setIsRestarting] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedDirectory, setSelectedDirectory] = useState(null);
     const [fileList, setFileList] = useState([]);
+    const [dirs,setDirs] = useState([
+        {
+            type: 'file',
+            name: 'ping.ts',
+            path: 'ping.ts',
+        },
+        {
+            type: 'file',
+            name: 'pong.ts',
+            path: 'pong.ts',
+        },
+        {
+            type: 'folder',
+            name: 'test',
+            path: 'test',
+            children: [
+                {
+                    type: 'file',
+                    name: 'test.ts',
+                    path: 'test/test.ts',
+                },
+            ],
+        },
+    ])
 
+    // 文件逻辑
     const [isFileVisible, setFileVisible] = useState(false);
     const [fileContent, setFileContent] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -98,22 +124,27 @@ export default [opts, handleFunc]
                     <div onClick={() => handleViewLog(record.node)} style={{ color: "#1890ff" }}>{record.node}</div>
                 </span>
             ),
+            align:"center",
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            align:"center",
         },
         {
             title: 'PID',
             dataIndex: 'pid',
             key: 'pid',
+            align:"center",
         },
         {
             title: '操作',
             key: 'action',
+            align:"center",
             render: (text, record) => (
                 <span>
+                    <Button style={{ margin: '0 8px' }} onClick={() => getDirs(record)}>check</Button>
                     <Button type="primary" onClick={() => handleRestart(record.node)} loading={isRestarting}>restart</Button>
                     <Button style={{ margin: '0 8px' }} onClick={() => handleCheckStatus(record.node)}>stats</Button>
                 </span>
@@ -121,34 +152,25 @@ export default [opts, handleFunc]
         },
     ];
 
-    const directoryData = [
-        {
+    const getDirs = (record) => {
+        // console.log(record);
+        
+        const new_directory = [  {
             type: 'file',
-            name: 'ping.ts',
-            path: 'ping.ts',
-        },
-        {
-            type: 'file',
-            name: 'pong.ts',
-            path: 'pong.ts',
-        },
-        {
-            type: 'folder',
-            name: 'test',
-            path: 'test',
-            children: [
-                {
-                    type: 'file',
-                    name: 'test.ts',
-                    path: 'test/test.ts',
-                },
-            ],
-        },
-    ];
+            name: 'add.ts',
+            path: 'add.ts',
+        },...dirs]
+        setDirs(new_directory)
+    }
+
+    useEffect(()=>{
+        // 关于目录结构的改变 代表端口的改变，会重新对整个界面进行重新渲染
+    },[dirs])
+
 
     const userData = [
-        { node: 'Node1', status: 'Running', pid: '12345' },
-        { node: 'Node2', status: 'Stopped', pid: '67890' },
+        { node: '127.0.0.1:3411', status: 'Running', pid: '12345' },
+        { node: '127.0.0.1:3412', status: 'Stopped', pid: '67890' },
     ];
 
     // Recursive directory tree
@@ -267,7 +289,7 @@ export default [opts, handleFunc]
         return dirs;
     };
 
-    const allDirectories = ['/', ...extractDirectories(directoryData)];
+    const allDirectories = ['/', ...extractDirectories(dirs)];
 
 
     return (
@@ -277,7 +299,7 @@ export default [opts, handleFunc]
                 <Tree
                     showIcon
                     defaultExpandAll
-                    treeData={renderDirectoryTree(directoryData)}
+                    treeData={renderDirectoryTree(dirs)}
                     onSelect={(selectedKeys, info) => handleNodeClick(info.node, selectedKeys)}
                 />
                 <Modal
