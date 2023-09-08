@@ -9,6 +9,15 @@ export function getUserContent(path:string){
     })
 }
 
+export function invokeFunction(path:string,data:Record<string, any>){
+    const user_dir = join('/api/',path)
+    return request({
+        url:user_dir,
+        method:'post',
+        data
+    })
+}
+
 export function login(user_name:string,password:string){
     const data = {
         user_name,password

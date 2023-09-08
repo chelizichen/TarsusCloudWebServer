@@ -6,6 +6,7 @@ import CodeBlock from '../components/HighLightCode';
 import {getUserContent} from "../api/user.ts";
 import join from "../utils/join.ts";
 import {UserDirs} from "../api/main.ts";
+import RequestComponent from "../components/RequestComponent.tsx";
 
 const UserDashboard = ({userInfo}: any) => {
     // 主逻辑
@@ -83,7 +84,8 @@ const UserDashboard = ({userInfo}: any) => {
             key: 'port',
             render: (text, record) => (
                 <span>
-                    <div onClick={() => handleViewLog(record.port)} style={{color: "#1890ff"}}>{record.port}</div>
+                    <div onClick={() => handleViewLog(record.port)}
+                         style={{color: "#1890ff", cursor: "pointer"}}>{record.port}</div>
                 </span>
             ),
             align: "center",
@@ -95,7 +97,8 @@ const UserDashboard = ({userInfo}: any) => {
             align: "center",
             render: (text, record, index) => (
                 <span>
-                    <div onClick={() => handleDirCheck(index)} style={{color: "#1890ff"}}>{record.dir}</div>
+                    <div onClick={() => handleDirCheck(index)}
+                         style={{color: "#1890ff", cursor: "pointer"}}>{record.dir}</div>
                 </span>
             ),
         },
@@ -253,7 +256,11 @@ const UserDashboard = ({userInfo}: any) => {
                     defaultExpandAll
                     treeData={renderDirectoryTree(dirs)}
                     onSelect={(selectedKeys, info) => handleNodeClick(info.node, selectedKeys)}
-                />
+                ></Tree>
+                <Button type="primary" onClick={showModal} style={{marginTop: '20px'}}>
+                    Upload File
+                </Button>
+                <RequestComponent functions={dirs} />
                 <Modal
                     title={`文件内容 - ${selectedFile}`}
                     open={isFileVisible}
@@ -276,9 +283,6 @@ const UserDashboard = ({userInfo}: any) => {
                     )}
                 </Modal>
 
-                <Button type="primary" onClick={showModal} style={{marginTop: '20px'}}>
-                    Upload File
-                </Button>
                 <Modal title="Upload File" open={isModalVisible} onCancel={handleCancel} footer={null}>
                     <Select
                         placeholder="Select a directory"
