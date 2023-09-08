@@ -1,68 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input } from 'antd';
-import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import React, {useEffect, useState} from 'react';
+import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input} from 'antd';
+import {FolderOutlined, FileOutlined} from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import {getUserContent} from "../api/user.ts";
-const UserDashboard = () => {
+import join from "../utils/join.ts";
+
+const UserDashboard = ({userInfo}: any) => {
     // 主逻辑
     const [isRestarting, setIsRestarting] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedDirectory, setSelectedDirectory] = useState(null);
     const [fileList, setFileList] = useState([]);
-    const [dirs,setDirs] = useState([
-        {
-            "type": "folder",
-            "name": "chelizichen",
-            "path": "chelizichen",
-            "children": [
-                {
-                    "type": "file",
-                    "name": "ping.ts",
-                    "path": "chelizichen/ping.ts"
-                },
-                {
-                    "type": "file",
-                    "name": "pong.ts",
-                    "path": "chelizichen/pong.ts"
-                },
-                {
-                    "type": "folder",
-                    "name": "test",
-                    "path": "chelizichen/test",
-                    "children": [
-                        {
-                            "type": "file",
-                            "name": "test.ts",
-                            "path": "chelizichen/test/test.ts"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "type": "folder",
-            "name": "leemulus",
-            "path": "leemulus",
-            "children": [
-                {
-                    "type": "file",
-                    "name": "ping.ts",
-                    "path": "leemulus/ping.ts"
-                },
-                {
-                    "type": "file",
-                    "name": "pong.ts",
-                    "path": "leemulus/pong.ts"
-                },
-                {
-                    "type": "file",
-                    "name": "test.ts",
-                    "path": "leemulus/test.ts"
-                }
-            ]
-        }
-    ])
+    const [dirs, setDirs] = useState([])
+    const [userTargetDir,setUserTargetDir] = useState("")
+
+    useEffect(() => {
+        console.log('userInfo', userInfo)
+        getUserContent(userInfo.dir).then(res => {
+            const dir = userInfo.dir
+            setUserTargetDir(dir);
+            const dirArray = [ {
+                "type": "folder",
+                "name": dir || "admin",
+                "path": dir,
+                "children":res.data.dirs
+            },]
+            setDirs(dirArray)
+        })
+    }, [])
+
 
     // 文件逻辑
     const [isFileVisible, setFileVisible] = useState(false);
@@ -72,10 +39,9 @@ const UserDashboard = () => {
 
 
     const handleNodeClick = (item) => {
-
-
         if (item.type === 'file') {
-            getUserContent(item.key).then(res=>{
+            const targetPath = join(userTargetDir,item.key)
+            getUserContent(targetPath).then(res => {
                 setSelectedFile(item.key);
                 setFileContent(res.data.content); // 模拟文件内容
                 setFileVisible(true);
@@ -95,7 +61,6 @@ const UserDashboard = () => {
     };
 
 
-
     const columns = [
         {
             title: 'Node',
@@ -103,32 +68,33 @@ const UserDashboard = () => {
             key: 'node',
             render: (text, record) => (
                 <span>
-                    <div onClick={() => handleViewLog(record.node)} style={{ color: "#1890ff" }}>{record.node}</div>
+                    <div onClick={() => handleViewLog(record.node)} style={{color: "#1890ff"}}>{record.node}</div>
                 </span>
             ),
-            align:"center",
+            align: "center",
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            align:"center",
+            align: "center",
         },
         {
             title: 'PID',
             dataIndex: 'pid',
             key: 'pid',
-            align:"center",
+            align: "center",
         },
         {
             title: '操作',
             key: 'action',
-            align:"center",
+            align: "center",
             render: (text, record) => (
                 <span>
-                    <Button style={{ margin: '0 8px' }} onClick={() => getDirs(record)}>check</Button>
-                    <Button type="primary" onClick={() => handleRestart(record.node)} loading={isRestarting}>restart</Button>
-                    <Button style={{ margin: '0 8px' }} onClick={() => handleCheckStatus(record.node)}>stats</Button>
+                    <Button style={{margin: '0 8px'}} onClick={() => getDirs(record)}>check</Button>
+                    <Button type="primary" onClick={() => handleRestart(record.node)}
+                            loading={isRestarting}>restart</Button>
+                    <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.node)}>stats</Button>
                 </span>
             ),
         },
@@ -136,23 +102,19 @@ const UserDashboard = () => {
 
     const getDirs = (record) => {
         // console.log(record);
-        
-        const new_directory = [  {
+
+        const new_directory = [{
             type: 'file',
             name: 'add.ts',
             path: 'add.ts',
-        },...dirs]
+        }, ...dirs]
         setDirs(new_directory)
     }
 
-    useEffect(()=>{
-        // 关于目录结构的改变 代表端口的改变，会重新对整个界面进行重新渲染
-    },[dirs])
-
 
     const userData = [
-        { node: '127.0.0.1:3411', status: 'Running', pid: '12345' },
-        { node: '127.0.0.1:3412', status: 'Stopped', pid: '67890' },
+        {node: '127.0.0.1:3411', status: 'Running', pid: '12345'},
+        {node: '127.0.0.1:3412', status: 'Stopped', pid: '67890'},
     ];
 
     // Recursive directory tree
@@ -163,16 +125,15 @@ const UserDashboard = () => {
                     title: item.name,
                     key: item.path,
                     type: item.type,
-                    icon: <FolderOutlined className="ant-tree-icon-folder" />,
+                    icon: <FolderOutlined className="ant-tree-icon-folder"/>,
                     children: renderDirectoryTree(item.children || []),
                 };
             }
-
             return {
                 title: item.name,
                 key: item.path,
                 type: item.type,
-                icon: <FileOutlined className="ant-tree-icon-file" />,
+                icon: <FileOutlined className="ant-tree-icon-file"/>,
             };
         });
 
@@ -275,8 +236,8 @@ const UserDashboard = () => {
 
 
     return (
-        <Row style={{ height: '100vh' }}>
-            <Col span={6} style={{ borderRight: '1px solid #e8e8e8', padding: '20px' }}>
+        <Row style={{height: '100vh'}}>
+            <Col span={6} style={{borderRight: '1px solid #e8e8e8', padding: '20px'}}>
                 <h3>Directory</h3>
                 <Tree
                     showIcon
@@ -302,18 +263,18 @@ const UserDashboard = () => {
                     {isEditing ? (
                         <Input.TextArea value={fileContent} onChange={(e) => setFileContent(e.target.value)} rows={30}/>
                     ) : (
-                        <CodeBlock code={fileContent} />
+                        <CodeBlock code={fileContent}/>
                     )}
                 </Modal>
 
-                <Button type="primary" onClick={showModal} style={{ marginTop: '20px' }}>
+                <Button type="primary" onClick={showModal} style={{marginTop: '20px'}}>
                     Upload File
                 </Button>
                 <Modal title="Upload File" open={isModalVisible} onCancel={handleCancel} footer={null}>
                     <Select
                         placeholder="Select a directory"
                         onChange={handleDirectoryChange}
-                        style={{ width: '100%', marginBottom: '20px' }}
+                        style={{width: '100%', marginBottom: '20px'}}
                     >
                         {allDirectories.map(dir => (
                             <Select.Option key={dir} value={dir}>{dir}</Select.Option>
@@ -322,17 +283,17 @@ const UserDashboard = () => {
                     <Upload
                         disabled={!selectedDirectory}
                         fileList={fileList}
-                        onChange={({ fileList }) => setFileList(fileList)}
-                    // ... other Upload props, like action, headers, etc.
+                        onChange={({fileList}) => setFileList(fileList)}
+                        // ... other Upload props, like action, headers, etc.
                     >
                         <Button disabled={!selectedDirectory}>Select File</Button>
                     </Upload>
                 </Modal>
             </Col>
-            <Col span={18} style={{ padding: '20px' }}>
-                <Table columns={columns} dataSource={userData} rowKey="node" />
-                <ReactECharts option={getOption1()} style={{ height: '300px', marginBottom: '20px' }} />
-                <ReactECharts option={getOption2()} style={{ height: '300px' }} />
+            <Col span={18} style={{padding: '20px'}}>
+                <Table columns={columns} dataSource={userData} rowKey="node"/>
+                <ReactECharts option={getOption1()} style={{height: '300px', marginBottom: '20px'}}/>
+                <ReactECharts option={getOption2()} style={{height: '300px'}}/>
             </Col>
         </Row>
     );

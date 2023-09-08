@@ -1,19 +1,33 @@
 import React, {useState} from 'react';
-import {Form, Input, Button, Card, Typography, Row, Col} from 'antd';
+import {Form, Input, Button, Card, Typography, Row, Col, message as OpenMessage} from 'antd';
 import {UserOutlined, LockOutlined} from '@ant-design/icons';
-
+import {login} from "../api/user.ts";
+import { useNavigate } from 'react-router-dom';
+import useStore from '../store';
 const {Title, Paragraph} = Typography;
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
-
-    const onFinish = (values) => {
+    const setUser = useStore((state) => state.setUser);
+    const history = useNavigate();
+    const onFinish = async (values) => {
         setLoading(true);
-        console.log('Received values of form: ', values);
-        // 这里你可以添加登录逻辑，例如 API 调用等
-        setTimeout(() => {
+        const apiResponse = {
+            success: true, // 如果登录失败，将此设置为false
+            message: '登录成功!' // 根据API的响应更改此消息
+        };
+        const {data, code, message} = await login(values.user_name, values.password)
+        if (code) {
+            OpenMessage.error(message)
             setLoading(false);
-        }, 2000); // 模拟登录延迟
+            return;
+        }
+        setLoading(false);
+        OpenMessage.success(apiResponse.message)
+        setUser(data);
+        const token = JSON.stringify(data)
+        localStorage.setItem("token", token);
+        history('/user')
     };
 
     return (
@@ -38,7 +52,7 @@ const Login = () => {
                             onFinish={onFinish}
                         >
                             <Form.Item
-                                name="username"
+                                name="user_name"
                                 rules={[{required: true, message: '请输入你的用户名!'}]}
                             >
                                 <Input prefix={<UserOutlined className="site-form-item-icon"/>} placeholder="用户名"/>

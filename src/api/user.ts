@@ -9,3 +9,13 @@ export function getUserContent(path:string){
     })
 }
 
+export function login(user_name:string,password:string){
+    const data = {
+        user_name,password
+    }
+    return request({
+        url:'/main/login',
+        method:'post',
+        data
+    })
+}
