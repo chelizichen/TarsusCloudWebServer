@@ -78,7 +78,7 @@ const AdminDashboard = () => {
                             <div>
                                 <h3>{selectedUser.name}</h3>
                                 <p>Email: {selectedUser.email}</p>
-                                {/* Add more user details here */}
+                                {/* Add more user.ts details here */}
                             </div>
                         ) : (
                             <Spin spinning={loading}>
