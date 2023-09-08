@@ -5,6 +5,7 @@ import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import {getUserContent} from "../api/user.ts";
 import join from "../utils/join.ts";
+import {UserDirs} from "../api/main.ts";
 
 const UserDashboard = ({userInfo}: any) => {
     // 主逻辑
@@ -13,22 +14,33 @@ const UserDashboard = ({userInfo}: any) => {
     const [selectedDirectory, setSelectedDirectory] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [dirs, setDirs] = useState([])
-    const [userTargetDir,setUserTargetDir] = useState("")
+    const [userTargetDir, setUserTargetDir] = useState("")
+    const [userDirs, setUserDirs] = useState([])
+    const [index, setIndex] = useState(0);
 
     useEffect(() => {
-        console.log('userInfo', userInfo)
-        getUserContent(userInfo.dir).then(res => {
-            const dir = userInfo.dir
+        UserDirs(userInfo.id).then(res => {
+            setUserDirs((res.data))
+        })
+    }, [])
+
+    useEffect(() => {
+        // 设置左侧文件栏目
+        if (!userDirs.length) {
+            return
+        }
+        getUserContent(userDirs[index].dir).then(res => {
+            const dir = userDirs[index].dir
             setUserTargetDir(dir);
-            const dirArray = [ {
+            const dirArray = [{
                 "type": "folder",
                 "name": dir || "admin",
                 "path": dir,
-                "children":res.data.dirs
+                "children": res.data.dirs
             },]
             setDirs(dirArray)
         })
-    }, [])
+    }, [userDirs, index])
 
 
     // 文件逻辑
@@ -40,7 +52,7 @@ const UserDashboard = ({userInfo}: any) => {
 
     const handleNodeClick = (item) => {
         if (item.type === 'file') {
-            const targetPath = join(userTargetDir,item.key)
+            const targetPath = join(userTargetDir, item.key)
             getUserContent(targetPath).then(res => {
                 setSelectedFile(item.key);
                 setFileContent(res.data.content); // 模拟文件内容
@@ -60,24 +72,32 @@ const UserDashboard = ({userInfo}: any) => {
         }
     };
 
+    const handleDirCheck = (index) => {
+        setIndex(index)
+    }
 
     const columns = [
         {
-            title: 'Node',
-            dataIndex: 'node',
-            key: 'node',
+            title: 'Port',
+            dataIndex: 'port',
+            key: 'port',
             render: (text, record) => (
                 <span>
-                    <div onClick={() => handleViewLog(record.node)} style={{color: "#1890ff"}}>{record.node}</div>
+                    <div onClick={() => handleViewLog(record.port)} style={{color: "#1890ff"}}>{record.port}</div>
                 </span>
             ),
             align: "center",
         },
         {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
+            title: 'Dir',
+            dataIndex: 'dir',
+            key: 'dir',
             align: "center",
+            render: (text, record, index) => (
+                <span>
+                    <div onClick={() => handleDirCheck(index)} style={{color: "#1890ff"}}>{record.dir}</div>
+                </span>
+            ),
         },
         {
             title: 'PID',
@@ -100,22 +120,11 @@ const UserDashboard = ({userInfo}: any) => {
         },
     ];
 
-    const getDirs = (record) => {
-        // console.log(record);
 
-        const new_directory = [{
-            type: 'file',
-            name: 'add.ts',
-            path: 'add.ts',
-        }, ...dirs]
-        setDirs(new_directory)
+    const getDirs = (record) => {
+
     }
 
-
-    const userData = [
-        {node: '127.0.0.1:3411', status: 'Running', pid: '12345'},
-        {node: '127.0.0.1:3412', status: 'Stopped', pid: '67890'},
-    ];
 
     // Recursive directory tree
     const renderDirectoryTree = (data: any) =>
@@ -291,7 +300,7 @@ const UserDashboard = ({userInfo}: any) => {
                 </Modal>
             </Col>
             <Col span={18} style={{padding: '20px'}}>
-                <Table columns={columns} dataSource={userData} rowKey="node"/>
+                <Table columns={columns} dataSource={userDirs} rowKey="node"/>
                 <ReactECharts option={getOption1()} style={{height: '300px', marginBottom: '20px'}}/>
                 <ReactECharts option={getOption2()} style={{height: '300px'}}/>
             </Col>
