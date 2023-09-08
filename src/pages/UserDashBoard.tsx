@@ -3,7 +3,7 @@ import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, In
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
-
+import {getUserContent} from "../api/user.ts";
 const UserDashboard = () => {
     // 主逻辑
     const [isRestarting, setIsRestarting] = useState(false);
@@ -12,27 +12,56 @@ const UserDashboard = () => {
     const [fileList, setFileList] = useState([]);
     const [dirs,setDirs] = useState([
         {
-            type: 'file',
-            name: 'ping.ts',
-            path: 'ping.ts',
-        },
-        {
-            type: 'file',
-            name: 'pong.ts',
-            path: 'pong.ts',
-        },
-        {
-            type: 'folder',
-            name: 'test',
-            path: 'test',
-            children: [
+            "type": "folder",
+            "name": "chelizichen",
+            "path": "chelizichen",
+            "children": [
                 {
-                    type: 'file',
-                    name: 'test.ts',
-                    path: 'test/test.ts',
+                    "type": "file",
+                    "name": "ping.ts",
+                    "path": "chelizichen/ping.ts"
                 },
-            ],
+                {
+                    "type": "file",
+                    "name": "pong.ts",
+                    "path": "chelizichen/pong.ts"
+                },
+                {
+                    "type": "folder",
+                    "name": "test",
+                    "path": "chelizichen/test",
+                    "children": [
+                        {
+                            "type": "file",
+                            "name": "test.ts",
+                            "path": "chelizichen/test/test.ts"
+                        }
+                    ]
+                }
+            ]
         },
+        {
+            "type": "folder",
+            "name": "leemulus",
+            "path": "leemulus",
+            "children": [
+                {
+                    "type": "file",
+                    "name": "ping.ts",
+                    "path": "leemulus/ping.ts"
+                },
+                {
+                    "type": "file",
+                    "name": "pong.ts",
+                    "path": "leemulus/pong.ts"
+                },
+                {
+                    "type": "file",
+                    "name": "test.ts",
+                    "path": "leemulus/test.ts"
+                }
+            ]
+        }
     ])
 
     // 文件逻辑
@@ -42,62 +71,15 @@ const UserDashboard = () => {
     const [selectedFile, setSelectedFile] = useState('');
 
 
-    const handleNodeClick = (item, selectedKeys) => {
-        console.log('11', item);
-        console.log('22', selectedKeys);
+    const handleNodeClick = (item) => {
 
 
         if (item.type === 'file') {
-            setSelectedFile(selectedKeys);
-            setFileContent(`
-import {FastifyReply, FastifyRequest, RouteShorthandOptions} from "fastify";
-import {RouteHandlerMethod} from "fastify/types/route";
-import path from "path";
-import fs from "fs";
-import {Reply, ReplyBody} from "../../../main_control/define";
-
-const routes = process.env.routes_path;
-
-const opts: RouteShorthandOptions = {
-    schema: {
-        response: {
-            200: {
-                type: 'object',
-                properties: {
-                    message: {
-                        type: 'string'
-                    },
-                    code: {
-                        type: "number"
-                    },
-                    data: {
-                        type: "object"
-                    }
-                }
-            }
-        },
-        body: {
-            userId: {
-                type: "string"
-            }
-        }
-    }
-}
-
-type CustomRequest = FastifyRequest<{
-    Body: { userId: string };
-}>
-
-const handleFunc = async (request: CustomRequest, reply: FastifyReply) => {
-    const {userId} = request.body
-
-    return Reply(ReplyBody.success, ReplyBody.success_message, {userId})
-}
-export default [opts, handleFunc]
-
-
-            `); // 模拟文件内容
-            setFileVisible(true);
+            getUserContent(item.key).then(res=>{
+                setSelectedFile(item.key);
+                setFileContent(res.data.content); // 模拟文件内容
+                setFileVisible(true);
+            })
         }
     };
 
