@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input } from 'antd';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
-import CodeBlock from './HighLightCode';
+import CodeBlock from '../components/HighLightCode';
 
 const UserDashboard = () => {
     // 主逻辑

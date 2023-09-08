@@ -3,9 +3,9 @@ import { Layout, Menu, Card, Carousel } from 'antd';
 import { HomeOutlined, UserOutlined, AimOutlined } from '@ant-design/icons';
 import { Routes, Route, Link,useLocation } from 'react-router-dom';
 
-import UserDashboard from './UserDashBoard';
-import HomePage from './HomePage';
-import AdminDashBoard from './AdminDashBoard'
+import UserDashboard from '../pages/UserDashBoard';
+import HomePage from '../pages/HomePage';
+import AdminDashBoard from '../pages/AdminDashBoard'
 
 const { Header, Content, Footer } = Layout;
 
