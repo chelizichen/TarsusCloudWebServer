@@ -19,11 +19,14 @@ export function Reload(port: number) {
     })
 }
 
-export function Touch(data: any) {
+export function Touch(data: any,dir:string) {
     return request({
         url: "/main/touch",
         method: "post",
-        data
+        data,
+        params:{
+            dir
+        }
     })
 }
 

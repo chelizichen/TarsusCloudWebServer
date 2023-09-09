@@ -1,17 +1,16 @@
-import React, {useEffect, useState} from 'react';
-import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input} from 'antd';
-import {FolderOutlined, FileOutlined} from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input } from 'antd';
+import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
-import {getUserContent} from "../api/user.ts";
+import { getUserContent } from "../api/user.ts";
 import join from "../utils/join.ts";
-import {Reload, UserDirs} from "../api/main.ts";
+import { Reload, UserDirs, Touch as UpLoadFile } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 
-const UserDashboard = ({userInfo}: any) => {
+const UserDashboard = ({ userInfo }: any) => {
     // 主逻辑
-    const [isRestarting, setIsRestarting] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedDirectory, setSelectedDirectory] = useState(null);
     const [fileList, setFileList] = useState([]);
@@ -78,11 +77,14 @@ const UserDashboard = ({userInfo}: any) => {
         }
     };
 
-    const handleDirCheck = (index,record) => {
+    const handleDirCheck = (index, record) => {
         setIndex(index)
         setPort(record.port)
         setCurrDir(record.dir)
     }
+
+    const [restartingPorts, setRestartingPorts] = useState({});
+
 
     const columns = [
         {
@@ -92,7 +94,7 @@ const UserDashboard = ({userInfo}: any) => {
             render: (text, record) => (
                 <span>
                     <div onClick={() => handleViewLog(record.port)}
-                         style={{color: "#1890ff", cursor: "pointer"}}>{record.port}</div>
+                        style={{ color: "#1890ff", cursor: "pointer" }}>{record.port}</div>
                 </span>
             ),
             align: "center",
@@ -104,8 +106,8 @@ const UserDashboard = ({userInfo}: any) => {
             align: "center",
             render: (text, record, index) => (
                 <span>
-                    <div onClick={() => handleDirCheck(index,record)}
-                         style={{color: "#1890ff", cursor: "pointer"}}>{record.dir}</div>
+                    <div onClick={() => handleDirCheck(index, record)}
+                        style={{ color: "#1890ff", cursor: "pointer" }}>{record.dir}</div>
                 </span>
             ),
         },
@@ -121,19 +123,13 @@ const UserDashboard = ({userInfo}: any) => {
             align: "center",
             render: (text, record) => (
                 <span>
-                    <Button style={{margin: '0 8px'}} onClick={() => getDirs(record)}>check</Button>
                     <Button type="primary" onClick={() => handleRestart(record)}
-                            loading={isRestarting}>restart</Button>
-                    <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.node)}>stats</Button>
+                        loading={restartingPorts[record.port]}>restart</Button>
+                    <Button style={{ margin: '0 8px' }} onClick={() => handleCheckStatus(record.node)}>stats</Button>
                 </span>
             ),
         },
     ];
-
-
-    const getDirs = (record) => {
-
-    }
 
 
     // Recursive directory tree
@@ -144,7 +140,7 @@ const UserDashboard = ({userInfo}: any) => {
                     title: item.name,
                     key: item.path,
                     type: item.type,
-                    icon: <FolderOutlined className="ant-tree-icon-folder"/>,
+                    icon: <FolderOutlined className="ant-tree-icon-folder" />,
                     children: renderDirectoryTree(item.children || []),
                 };
             }
@@ -152,7 +148,7 @@ const UserDashboard = ({userInfo}: any) => {
                 title: item.name,
                 key: item.path,
                 type: item.type,
-                icon: <FileOutlined className="ant-tree-icon-file"/>,
+                icon: <FileOutlined className="ant-tree-icon-file" />,
             };
         });
 
@@ -193,15 +189,13 @@ const UserDashboard = ({userInfo}: any) => {
             }]
         };
     };
-
     const handleRestart = async (record) => {
-        setIsRestarting(true);
-        const data = await Reload(record.port)
-        console.log(data)
-        // 模拟2秒的重启时间
+        setRestartingPorts(prev => ({ ...prev, [record.port]: true }));
+        const data = await Reload(record.port);
+        console.log(data);
+
         setTimeout(() => {
-            setIsRestarting(false);
-            // await restartNode(record.node);
+            setRestartingPorts(prev => ({ ...prev, [record.port]: false }));
             message.success('重启成功');
 
             // 刷新PID值的逻辑（这取决于你如何存储和更新数据）
@@ -252,12 +246,39 @@ const UserDashboard = ({userInfo}: any) => {
         return dirs;
     };
 
-    const allDirectories = ['/', ...extractDirectories(dirs)];
+    const allDirectories = [...extractDirectories(dirs)];
 
+    const handleUpload = () => {
+        if (fileList.length > 0) {
+            customUpload({ file: fileList[0].originFileObj, onSuccess: onUploadSuccess, onError: onUploadError });
+        }
+    };
+
+    const onUploadSuccess = (response) => {
+        message.success("上传成功！" + response.data.write_file_path)
+    };
+
+    const onUploadError = (error) => {
+        message.error("上传失败！" + error)
+        // Handle error logic here
+    };
+
+
+    const customUpload = async ({ file, onSuccess, onError }) => {
+        const formData = new FormData();
+        formData.append('file', file); // 'file' 是服务器期望的字段名
+
+        try {
+            const response = await UpLoadFile(formData,selectedDirectory);
+            onSuccess(response);
+        } catch (error) {
+            onError(error);
+        }
+    };
 
     return (
-        <Row style={{height: '100vh'}}>
-            <Col span={6} style={{borderRight: '1px solid #e8e8e8', padding: '20px'}}>
+        <Row style={{ height: '100vh' }}>
+            <Col span={6} style={{ borderRight: '1px solid #e8e8e8', padding: '20px' }}>
                 <h3>Directory</h3>
                 <Tree
                     showIcon
@@ -265,7 +286,7 @@ const UserDashboard = ({userInfo}: any) => {
                     treeData={renderDirectoryTree(dirs)}
                     onSelect={(selectedKeys, info) => handleNodeClick(info.node, selectedKeys)}
                 ></Tree>
-                <Button type="primary" onClick={showModal} style={{marginTop: '20px'}}>
+                <Button type="primary" onClick={showModal} style={{ marginTop: '20px' }}>
                     Upload File
                 </Button>
                 <RequestComponent functions={dirs} />
@@ -285,9 +306,9 @@ const UserDashboard = ({userInfo}: any) => {
                     ]}
                 >
                     {isEditing ? (
-                        <Input.TextArea value={fileContent} onChange={(e) => setFileContent(e.target.value)} rows={30}/>
+                        <Input.TextArea value={fileContent} onChange={(e) => setFileContent(e.target.value)} rows={30} />
                     ) : (
-                        <CodeBlock code={fileContent}/>
+                        <CodeBlock code={fileContent} />
                     )}
                 </Modal>
 
@@ -295,7 +316,7 @@ const UserDashboard = ({userInfo}: any) => {
                     <Select
                         placeholder="Select a directory"
                         onChange={handleDirectoryChange}
-                        style={{width: '100%', marginBottom: '20px'}}
+                        style={{ width: '100%', marginBottom: '20px' }}
                     >
                         {allDirectories.map(dir => (
                             <Select.Option key={dir} value={dir}>{dir}</Select.Option>
@@ -304,17 +325,26 @@ const UserDashboard = ({userInfo}: any) => {
                     <Upload
                         disabled={!selectedDirectory}
                         fileList={fileList}
-                        onChange={({fileList}) => setFileList(fileList)}
-                        // ... other Upload props, like action, headers, etc.
+                        onChange={({ fileList }) => setFileList(fileList)}
+                        beforeUpload={() => false} // Prevent automatic upload
+                    // ... other Upload props
                     >
                         <Button disabled={!selectedDirectory}>Select File</Button>
                     </Upload>
+                    <Button
+                        type="primary"
+                        onClick={handleUpload}
+                        disabled={!selectedDirectory || !fileList.length}
+                    >
+                        Upload
+                    </Button>
+
                 </Modal>
             </Col>
-            <Col span={18} style={{padding: '20px'}}>
-                <Table columns={columns} dataSource={userDirs} rowKey="node"/>
-                <ReactECharts option={getOption1()} style={{height: '300px', marginBottom: '20px'}}/>
-                <ReactECharts option={getOption2()} style={{height: '300px'}}/>
+            <Col span={18} style={{ padding: '20px' }}>
+                <Table columns={columns} dataSource={userDirs} rowKey="port" bordered />
+                <ReactECharts option={getOption1()} style={{ height: '300px', marginBottom: '20px' }} />
+                <ReactECharts option={getOption2()} style={{ height: '300px' }} />
             </Col>
         </Row>
     );

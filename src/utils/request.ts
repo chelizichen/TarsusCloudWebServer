@@ -9,6 +9,10 @@ const http = axios.create({
 http.interceptors.request.use((request)=>{
     const state = useStore.getState()
     console.log('request.url',request.url)
+    if(request.url?.match('/main/touch')){
+        request.headers['Content-Type'] = "multipart/form-data"
+        return request;
+    }
     if (request.url.startsWith("/main/")){
         return request;
     }
