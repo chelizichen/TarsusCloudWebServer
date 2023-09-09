@@ -10,7 +10,7 @@ export function getUserContent(path:string){
 }
 
 export function invokeFunction(path:string,data:Record<string, any>){
-    const user_dir = join('/api/',path)
+    const user_dir = join('/proxy/',path).replace(".js","")
     return request({
         url:user_dir,
         method:'post',

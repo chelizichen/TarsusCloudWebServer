@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react';
 import { Button, Input, Select, Card } from 'antd';
 import ExtractFilePaths from "../utils/extractFilePaths.ts";
 import {invokeFunction} from "../api/user.ts";
+import join from "../utils/join.ts";
+import useStore from "../store";
 
 const { Option } = Select;
 
@@ -24,10 +26,11 @@ const RequestComponent = ({ functions }) => {
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
     };
-
+    const state = useStore.getState()
     const handleInvoke = async () => {
         console.log('selectedFunction',selectedFunction)
-        const data = await invokeFunction(selectedFunction,JSON.parse(inputValue));
+        const functionPath = join(state.currDir,selectedFunction)
+        const data = await invokeFunction(functionPath,JSON.parse(inputValue));
         console.log(data)
         // 这里你可以调用你的 FaaS 函数
         // 假设你有一个函数来处理这个，例如：invokeFunction

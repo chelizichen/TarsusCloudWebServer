@@ -21,6 +21,7 @@ const UserDashboard = ({userInfo}: any) => {
     const [index, setIndex] = useState(0);
 
     const setPort = useStore((state) => state.setInvokePort);
+    const setCurrDir = useStore((state) => state.setCurrDir);
     useEffect(() => {
         UserDirs(userInfo.id).then(res => {
             setUserDirs((res.data))
@@ -35,6 +36,8 @@ const UserDashboard = ({userInfo}: any) => {
         getUserContent(userDirs[index].dir).then(res => {
             const dir = userDirs[index].dir
             setUserTargetDir(dir);
+            setPort(userDirs[index].port)
+            setCurrDir(dir)
             const dirArray = [{
                 "type": "folder",
                 "name": dir || "admin",
@@ -78,6 +81,7 @@ const UserDashboard = ({userInfo}: any) => {
     const handleDirCheck = (index,record) => {
         setIndex(index)
         setPort(record.port)
+        setCurrDir(record.dir)
     }
 
     const columns = [
