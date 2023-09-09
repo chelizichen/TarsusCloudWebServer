@@ -5,8 +5,9 @@ import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import {getUserContent} from "../api/user.ts";
 import join from "../utils/join.ts";
-import {UserDirs} from "../api/main.ts";
+import {Reload, UserDirs} from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
+import useStore from "../store";
 
 const UserDashboard = ({userInfo}: any) => {
     // 主逻辑
@@ -19,6 +20,7 @@ const UserDashboard = ({userInfo}: any) => {
     const [userDirs, setUserDirs] = useState([])
     const [index, setIndex] = useState(0);
 
+    const setPort = useStore((state) => state.setInvokePort);
     useEffect(() => {
         UserDirs(userInfo.id).then(res => {
             setUserDirs((res.data))
@@ -73,8 +75,9 @@ const UserDashboard = ({userInfo}: any) => {
         }
     };
 
-    const handleDirCheck = (index) => {
+    const handleDirCheck = (index,record) => {
         setIndex(index)
+        setPort(record.port)
     }
 
     const columns = [
@@ -97,7 +100,7 @@ const UserDashboard = ({userInfo}: any) => {
             align: "center",
             render: (text, record, index) => (
                 <span>
-                    <div onClick={() => handleDirCheck(index)}
+                    <div onClick={() => handleDirCheck(index,record)}
                          style={{color: "#1890ff", cursor: "pointer"}}>{record.dir}</div>
                 </span>
             ),
@@ -115,7 +118,7 @@ const UserDashboard = ({userInfo}: any) => {
             render: (text, record) => (
                 <span>
                     <Button style={{margin: '0 8px'}} onClick={() => getDirs(record)}>check</Button>
-                    <Button type="primary" onClick={() => handleRestart(record.node)}
+                    <Button type="primary" onClick={() => handleRestart(record)}
                             loading={isRestarting}>restart</Button>
                     <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.node)}>stats</Button>
                 </span>
@@ -187,9 +190,10 @@ const UserDashboard = ({userInfo}: any) => {
         };
     };
 
-    const handleRestart = (node) => {
+    const handleRestart = async (record) => {
         setIsRestarting(true);
-
+        const data = await Reload(record.port)
+        console.log(data)
         // 模拟2秒的重启时间
         setTimeout(() => {
             setIsRestarting(false);

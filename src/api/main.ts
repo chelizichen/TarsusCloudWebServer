@@ -11,7 +11,7 @@ export function ShutDown(port: number) {
 }
 
 export function Reload(port: number) {
-    const data = {port}
+    const data = {port: Number(port)}
     return request({
         url: "/main/reload",
         method: "post",
