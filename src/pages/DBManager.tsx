@@ -22,12 +22,8 @@ const DatabaseManager = () => {
 
     const SeriesData = LinkToTable(tableData)
     const columns = SeriesData.columns;
-    // const columns = [
-    //     { title: 'Name', dataIndex: 'name', key: 'name' },
-    //     { title: 'Age', dataIndex: 'age', key: 'age' },
-    // ];
 
-    
+    const [showModel,SetShowModel] = useState(false);
 
     const getOption = () => {
         return {
@@ -41,8 +37,8 @@ const DatabaseManager = () => {
                 {
                     type: 'graph',
                     layout: 'none',
-                    symbolSize: 50,
-                    roam: true,
+                    symbolSize: 70,
+                    roam: false,
                     label: {
                         show: true
                     },
@@ -52,7 +48,7 @@ const DatabaseManager = () => {
                     links: SeriesData.links,
                     lineStyle: {
                         opacity: 0.9,
-                        width: 2,
+                        width: 4,
                         curveness: 0
                     }
                 }
@@ -85,10 +81,13 @@ const DatabaseManager = () => {
                             <Button type={viewMode === 'STRUCT' ? 'primary' : 'default'} onClick={() => setViewMode('STRUCT')}>
                                 STRUCT
                             </Button>
+                            <Button type={"link"} onClick={() => setViewMode('STRUCT')}>
+                                MODEL
+                            </Button>
+
                             <div style={{ marginTop: '20px' }}>
                                 {viewMode === 'DATA' ? (
                                     <div>
-                                        <ReactECharts option={getOption()} style={{ height: '400px' }} />
                                         <Table dataSource={tableData} columns={columns} />
                                     </div>
                                 ) : (

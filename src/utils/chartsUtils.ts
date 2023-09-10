@@ -8,28 +8,37 @@ export function LinkToTable(sourceData) {
         return {
             title: item.charAt(0).toUpperCase()
                 + item.slice(1),  // 首字母大写
-            dataIndex: item, 
+            dataIndex: item,
             key: item
         }
     })
-    // 计算每个字段的x坐标
-    const fieldCount = fields.length;
+    // 圆的中心坐标和半径
     const centerX = 300;
-    const spacing = 200;
-    const start = centerX - (fieldCount - 1) * spacing / 2;
+    const centerY = 300;
+    const radius = 150;
+
+    // 计算每个字段的角度
+    const fieldCount = fields.length;
+    const angleIncrement = (2 * Math.PI) / fieldCount;
 
     // 生成Seriesdata
-    const data = fields.map((field, index) => ({
-        name: field,
-        x: start + index * spacing,
-        y: 300
-    }));
+    const data = fields.map((field, index) => {
+        const angle = index * angleIncrement;
+        return {
+            name: field,
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+            itemStyle: {
+                color: '#4CAF50'  // 字段的颜色
+            }
+        };
+    });
 
     // 将表名添加到Seriesdata
     data.unshift({
         name: 'Table',
         x: centerX,
-        y: 150
+        y: centerY
     });
 
     // 生成Serieslinks
@@ -41,7 +50,7 @@ export function LinkToTable(sourceData) {
     return {
         data,
         links,
-        columns        
+        columns
     };
 }
 
