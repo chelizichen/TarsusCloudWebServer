@@ -10,6 +10,11 @@ export default defineConfig({
                 target: 'http://localhost:3401',
                 changeOrigin: true,
                 rewrite: path => path.replace(/^\/primary/, '')
+            },
+            '/proxy':{
+                target: 'http://localhost:3402',
+                changeOrigin: true,
+                rewrite: path => path.replace(/^\/proxy/, '')
             }
         },
     },

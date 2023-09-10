@@ -8,6 +8,8 @@ import AdminDashBoard from '../pages/AdminDashBoard'
 import LoginForm from "../pages/Login.tsx";
 import useStore from '../store';
 import DatabaseManager from '../pages/DBManager.tsx';
+import Logger from "../components/APIPerformance.tsx";
+import LoggerViewer from "../pages/LoggerViewer.tsx";
 
 const { Header, Content, Footer } = Layout;
 
@@ -62,6 +64,7 @@ const RouterComponent = () => {
                     <Route path="/admin" element={<AdminDashBoard />} />
                     <Route path="/login" element={<LoginForm />} />
                     <Route path="/database" element={<DatabaseManager />} />
+                    <Route path="/logger" element={<LoggerViewer />} />
                     {/* Add your Admin route here if needed */}
                 </Routes>
             </Content>

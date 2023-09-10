@@ -9,6 +9,7 @@ import { Reload, UserDirs, Touch as UpLoadFile } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 import { useNavigate } from 'react-router-dom';
+import Logger from "../components/APIPerformance.tsx";
 
 const UserDashboard = ({ userInfo }: any) => {
     const navigate = useNavigate();
@@ -22,6 +23,7 @@ const UserDashboard = ({ userInfo }: any) => {
     const [index, setIndex] = useState(0);
 
     const setPort = useStore((state) => state.setInvokePort);
+    const port = useStore((state) => state.invokePort);
     const setCurrDir = useStore((state) => state.setCurrDir);
     useEffect(() => {
         UserDirs(userInfo.id).then(res => {
@@ -202,6 +204,8 @@ const UserDashboard = ({ userInfo }: any) => {
             }]
         };
     };
+
+
     const handleRestart = async (record) => {
         setRestartingPorts(prev => ({ ...prev, [record.port]: true }));
         const data = await Reload(record.port);
@@ -224,6 +228,7 @@ const UserDashboard = ({ userInfo }: any) => {
 
     const handleViewLog = (node) => {
         console.log('Viewing logs for node:', node);
+        navigate("/logger")
         // ... your view log logic here ...
     };
 
@@ -356,6 +361,7 @@ const UserDashboard = ({ userInfo }: any) => {
             </Col>
             <Col span={18} style={{ padding: '20px' }}>
                 <Table columns={columns} dataSource={userDirs} rowKey="port" bordered />
+                <Logger port={port}></Logger>
                 <ReactECharts option={getOption1()} style={{ height: '300px', marginBottom: '20px' }} />
                 <ReactECharts option={getOption2()} style={{ height: '300px' }} />
             </Col>
