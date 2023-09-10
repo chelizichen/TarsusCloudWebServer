@@ -7,6 +7,7 @@ import HomePage from '../pages/HomePage';
 import AdminDashBoard from '../pages/AdminDashBoard'
 import LoginForm from "../pages/Login.tsx";
 import useStore from '../store';
+import DatabaseManager from '../pages/DBManager.tsx';
 
 const { Header, Content, Footer } = Layout;
 
@@ -34,7 +35,7 @@ const RouterComponent = () => {
         }
 
         if(token && userInfo){
-            if (location.pathname === '/admin') {
+            if (location.pathname === '/admin' || location.pathname === "/database") {
                 setPadd('0');
             } else {
                 setPadd('50px');
@@ -60,6 +61,7 @@ const RouterComponent = () => {
                     <Route path="/user" element={<UserDashboard userInfo={userInfo} />} />
                     <Route path="/admin" element={<AdminDashBoard />} />
                     <Route path="/login" element={<LoginForm />} />
+                    <Route path="/database" element={<DatabaseManager />} />
                     {/* Add your Admin route here if needed */}
                 </Routes>
             </Content>

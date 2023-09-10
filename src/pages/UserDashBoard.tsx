@@ -8,8 +8,10 @@ import join from "../utils/join.ts";
 import { Reload, UserDirs, Touch as UpLoadFile } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
+import { useNavigate } from 'react-router-dom';
 
 const UserDashboard = ({ userInfo }: any) => {
+    const navigate = useNavigate();
     // 主逻辑
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedDirectory, setSelectedDirectory] = useState(null);
@@ -85,6 +87,9 @@ const UserDashboard = ({ userInfo }: any) => {
 
     const [restartingPorts, setRestartingPorts] = useState({});
 
+    const showDatabase = () =>{
+        navigate("/database")
+    }
 
     const columns = [
         {
@@ -97,13 +102,11 @@ const UserDashboard = ({ userInfo }: any) => {
                         style={{ color: "#1890ff", cursor: "pointer" }}>{record.port}</div>
                 </span>
             ),
-            align: "center",
         },
         {
             title: 'Dir',
             dataIndex: 'dir',
             key: 'dir',
-            align: "center",
             render: (text, record, index) => (
                 <span>
                     <div onClick={() => handleDirCheck(index, record)}
@@ -118,9 +121,19 @@ const UserDashboard = ({ userInfo }: any) => {
             align: "center",
         },
         {
+            title: 'DataBase',
+            dataIndex: 'database',
+            key: 'database',
+            render: (text, record, index) => (
+                <span>
+                    <div onClick={() => showDatabase(index, record)}  style={{ color: "#1890ff", cursor: "pointer" }}>database
+                    </div>
+                </span>
+            ),
+        },
+        {
             title: '操作',
             key: 'action',
-            align: "center",
             render: (text, record) => (
                 <span>
                     <Button type="primary" onClick={() => handleRestart(record)}
