@@ -10,6 +10,7 @@ import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 import { useNavigate } from 'react-router-dom';
 import Logger from "../components/APIPerformance.tsx";
+import Editor from "../components/Editor.tsx";
 
 const UserDashboard = ({ userInfo }: any) => {
     const navigate = useNavigate();
@@ -294,6 +295,8 @@ const UserDashboard = ({ userInfo }: any) => {
         }
     };
 
+    const [isWriteFileOpen,setWriteOpen] = useState(false)
+
     return (
         <Row style={{ height: '100vh' }}>
             <Col span={6} style={{ borderRight: '1px solid #e8e8e8', padding: '20px' }}>
@@ -306,6 +309,10 @@ const UserDashboard = ({ userInfo }: any) => {
                 ></Tree>
                 <Button type="primary" onClick={showModal} style={{ marginTop: '20px' }}>
                     Upload File
+                </Button>
+                <br/>
+                <Button type={"primary"} onClick={()=>setWriteOpen(true)} style={{ marginTop: '20px' }}>
+                    WriteFile File
                 </Button>
                 <RequestComponent functions={dirs} />
                 <Modal
@@ -329,7 +336,11 @@ const UserDashboard = ({ userInfo }: any) => {
                         <CodeBlock code={fileContent} />
                     )}
                 </Modal>
-
+                <Modal title="Write File" open={isWriteFileOpen} onCancel={()=>setWriteOpen(false)} footer={null} width={900}>
+                    <div id={'container'}>
+                        <Editor language="typescript" value="console.log('Hello, world!');"></Editor>
+                    </div>
+                </Modal>
                 <Modal title="Upload File" open={isModalVisible} onCancel={handleCancel} footer={null}>
                     <Select
                         placeholder="Select a directory"
