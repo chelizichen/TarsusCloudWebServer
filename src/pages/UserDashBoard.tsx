@@ -296,9 +296,20 @@ const UserDashboard = ({ userInfo }: any) => {
     };
 
     const [isWriteFileOpen,setWriteOpen] = useState(false)
-    const fileNameRef = useRef<InputRef>();
+    const fileNameRef = useRef<InputRef>({} as InputRef);
+    const [editorVal,setEditorVal] = useState('console.log(\'Hello, world!\');')
     const uploadCode = ()=>{
-        UploadCode()
+        const data = {
+            dir:selectedDirectory,
+            fileName:fileNameRef.current.input.value,
+            code:editorVal
+        }
+        console.log(data)
+        // UploadCode()
+    }
+    const handleEditorChange = (newVal) =>{
+        setEditorVal(newVal);
+        console.log(newVal); // 在这里可以拿到编辑器的最新值
     }
 
     return (
@@ -354,7 +365,7 @@ const UserDashboard = ({ userInfo }: any) => {
                             </Select>
                             <Input ref={fileNameRef} style={{height:"32px"}}></Input>
                         </div>
-                        <Editor language="typescript" value="console.log('Hello, world!');"></Editor>
+                        <Editor language="typescript" value={editorVal}  onChange={(newValue) => setEditorVal(newValue)}></Editor>
                         <Button onClick={uploadCode} type={"primary"}>upload code</Button>
                     </div>
                 </Modal>

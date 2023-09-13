@@ -44,7 +44,7 @@ function LogViewer() {
             <div style={{ flex: 1, padding: '20px', backgroundColor: 'black', color: '#fff', overflowY: 'auto' }}>
                 {logs.map((log, index) => (
                     <div key={index}>
-                        {log.requestTime} >> {log.responseTime} >> {log.endpoint} >> {log.params} >> {log.bodyLength}
+                        {log.requestTime}  "{'>>'}" {log.responseTime}  "{'>>'}" {log.endpoint}  "{'>>'}" {log.params}  "{'>>'}" {log.bodyLength}
                     </div>
                 ))}
             </div>
