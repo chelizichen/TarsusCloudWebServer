@@ -1,4 +1,5 @@
 import request from "../utils/request.ts";
+import proxy from "../utils/proxy.ts";
 
 // 关闭节点
 export function ShutDown(port: number) {
@@ -19,18 +20,20 @@ export function Reload(port: number) {
     })
 }
 
-export function Touch(data: any,dir:string) {
+export function Touch(data: any, dir: string) {
     return request({
         url: "/main/touch",
         method: "post",
         data,
-        params:{
+        params: {
             dir
         }
     })
 }
-type UploadType =  { dir: string;code:string;fileName:string };
-export function UploadCode(data:UploadType) {
+
+type UploadType = { dir: string; code: string; fileName: string };
+
+export function UploadCode(data: UploadType) {
     return request({
         url: "/main/uploadcode",
         method: "post",
@@ -38,7 +41,7 @@ export function UploadCode(data:UploadType) {
     })
 }
 
-export function UpdateCode(data:UploadType) {
+export function UpdateCode(data: UploadType) {
     return request({
         url: "/main/updatecode",
         method: "post",
@@ -53,4 +56,37 @@ export function UserDirs(id: string) {
         method: "post",
         data
     })
+}
+
+
+export async function getApiCallsCharts(port: string) {
+    const options =  {
+        title: {
+            text: 'Function Run Count (Last 7 days)'
+        },
+        xAxis: {
+            type: 'category',
+            data: undefined // Sample data
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [{
+            data: undefined, // Sample data
+            type: 'bar'
+        }]
+    };
+
+    const body = {port}
+    const data = await proxy({
+        url: "/apicalls",
+        method: "get",
+        params:body
+    }) as unknown as Array<{request_day:string,api_calls:string}>
+    const xData = data.map(item=>item.request_day)
+    const yData = data.map(item=>item.api_calls)
+    options.xAxis.data = xData
+    options.series[0].data = yData
+    console.log('options',options)
+    return options
 }

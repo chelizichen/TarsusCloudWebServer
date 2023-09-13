@@ -5,7 +5,7 @@ import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import { getUserContent } from "../api/user.ts";
 import join from "../utils/join.ts";
-import {Reload, UserDirs, Touch as UpLoadFile, UploadCode, UpdateCode} from "../api/main.ts";
+import {Reload, UserDirs, Touch as UpLoadFile, UploadCode, UpdateCode, getApiCallsCharts} from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 import { useNavigate } from 'react-router-dom';
@@ -31,8 +31,12 @@ const UserDashboard = ({ userInfo }: any) => {
             setUserDirs((res.data))
         })
     }
+    const [apiCharts,setApiCharts] = useState({})
     useEffect(() => {
         loadDirs()
+        getApiCallsCharts(port).then(opt=>{
+            setApiCharts(opt)
+        })
     }, [])
 
     useEffect(() => {
@@ -179,24 +183,7 @@ const UserDashboard = ({ userInfo }: any) => {
             };
         });
 
-    const getOption1 = () => {
-        return {
-            title: {
-                text: 'Function Run Count (Last 30 days)'
-            },
-            xAxis: {
-                type: 'category',
-                data: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'] // Sample data
-            },
-            yAxis: {
-                type: 'value'
-            },
-            series: [{
-                data: [120, 200, 150, 80, 70, 110, 130], // Sample data
-                type: 'bar'
-            }]
-        };
-    };
+
 
     const getOption2 = () => {
         return {
@@ -416,7 +403,7 @@ const UserDashboard = ({ userInfo }: any) => {
             <Col span={18} style={{ padding: '20px' }}>
                 <Table columns={columns} dataSource={userDirs} rowKey="port" bordered />
                 <Logger port={port}></Logger>
-                <ReactECharts option={getOption1()} style={{ height: '300px', marginBottom: '20px' }} />
+                <ReactECharts option={apiCharts} style={{ height: '300px', marginBottom: '20px' }} />
                 <ReactECharts option={getOption2()} style={{ height: '300px' }} />
             </Col>
         </Row>
