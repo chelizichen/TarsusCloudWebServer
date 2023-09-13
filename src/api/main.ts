@@ -29,6 +29,14 @@ export function Touch(data: any,dir:string) {
         }
     })
 }
+type UploadType =  { dir: string;code:string;fileName:string };
+export function UploadCode(data:UploadType) {
+    return request({
+        url: "/main/uploadcode",
+        method: "post",
+        data,
+    })
+}
 
 export function UserDirs(id: string) {
     const data = {id}

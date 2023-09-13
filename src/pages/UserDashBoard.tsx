@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input } from 'antd';
+import React, {useEffect, useRef, useState} from 'react';
+import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input, InputRef} from 'antd';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import { getUserContent } from "../api/user.ts";
 import join from "../utils/join.ts";
-import { Reload, UserDirs, Touch as UpLoadFile } from "../api/main.ts";
+import {Reload, UserDirs, Touch as UpLoadFile, UploadCode} from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 import { useNavigate } from 'react-router-dom';
@@ -296,6 +296,10 @@ const UserDashboard = ({ userInfo }: any) => {
     };
 
     const [isWriteFileOpen,setWriteOpen] = useState(false)
+    const fileNameRef = useRef<InputRef>();
+    const uploadCode = ()=>{
+        UploadCode()
+    }
 
     return (
         <Row style={{ height: '100vh' }}>
@@ -338,7 +342,20 @@ const UserDashboard = ({ userInfo }: any) => {
                 </Modal>
                 <Modal title="Write File" open={isWriteFileOpen} onCancel={()=>setWriteOpen(false)} footer={null} width={900}>
                     <div id={'container'}>
+                        <div style={{display:"flex"}}>
+                            <Select
+                                placeholder="Select a directory"
+                                onChange={handleDirectoryChange}
+                                style={{ width: '100%', marginBottom: '20px' }}
+                            >
+                                {allDirectories.map(dir => (
+                                    <Select.Option key={dir} value={dir}>{dir}</Select.Option>
+                                ))}
+                            </Select>
+                            <Input ref={fileNameRef} style={{height:"32px"}}></Input>
+                        </div>
                         <Editor language="typescript" value="console.log('Hello, world!');"></Editor>
+                        <Button onClick={uploadCode} type={"primary"}>upload code</Button>
                     </div>
                 </Modal>
                 <Modal title="Upload File" open={isModalVisible} onCancel={handleCancel} footer={null}>
