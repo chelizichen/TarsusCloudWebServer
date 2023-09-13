@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input, InputRef} from 'antd';
-import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import { FolderOutlined, FileOutlined,ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import { getUserContent } from "../api/user.ts";
@@ -26,10 +26,13 @@ const UserDashboard = ({ userInfo }: any) => {
     const setPort = useStore((state) => state.setInvokePort);
     const port = useStore((state) => state.invokePort);
     const setCurrDir = useStore((state) => state.setCurrDir);
-    useEffect(() => {
+    const loadDirs = ()=>{
         UserDirs(userInfo.id).then(res => {
             setUserDirs((res.data))
         })
+    }
+    useEffect(() => {
+        loadDirs()
     }, [])
 
     useEffect(() => {
@@ -298,23 +301,28 @@ const UserDashboard = ({ userInfo }: any) => {
     const [isWriteFileOpen,setWriteOpen] = useState(false)
     const fileNameRef = useRef<InputRef>({} as InputRef);
     const [editorVal,setEditorVal] = useState('console.log(\'Hello, world!\');')
-    const uploadCode = ()=>{
+    const uploadCode = async ()=>{
         const data = {
             dir:selectedDirectory,
             fileName:fileNameRef.current.input.value as string,
             code:editorVal
         }
-        UploadCode(data)
-    }
-    const handleEditorChange = (newVal) =>{
-        setEditorVal(newVal);
-        console.log(newVal); // 在这里可以拿到编辑器的最新值
+        const ret = await UploadCode(data)
+        if(ret.code){
+            message.error("上传代码失败 code:"+ret.code);
+            return;            
+        }
+        message.success("上传代码成功")
+        setWriteOpen(false)
     }
 
     return (
         <Row style={{ height: '100vh' }}>
             <Col span={6} style={{ borderRight: '1px solid #e8e8e8', padding: '20px' }}>
-                <h3>Directory</h3>
+                <div style={{display:'flex',justifyContent:'space-between'}}>
+                    <h3>Directory</h3>
+                    <ReloadOutlined onClick={loadDirs}/>
+                </div>
                 <Tree
                     showIcon
                     defaultExpandAll

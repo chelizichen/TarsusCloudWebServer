@@ -38,7 +38,10 @@ const RequestComponent = ({ functions }) => {
         // setOutput(result);
 
         // 为了模拟，我们只是使用输入值
-        setOutput(`Function ${selectedFunction} invoked with input: ${inputValue}`);
+        setOutput(`
+        Function ${selectedFunction} invoked with output: ${JSON.stringify(data.data)}
+        
+        `);
     };
 
     return (
