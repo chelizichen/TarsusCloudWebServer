@@ -5,7 +5,7 @@ import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import { getUserContent } from "../api/user.ts";
 import join from "../utils/join.ts";
-import {Reload, UserDirs, Touch as UpLoadFile, UploadCode} from "../api/main.ts";
+import {Reload, UserDirs, Touch as UpLoadFile, UploadCode, UpdateCode} from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 import { useNavigate } from 'react-router-dom';
@@ -74,14 +74,22 @@ const UserDashboard = ({ userInfo }: any) => {
         }
     };
 
-    const handleOk = () => {
+    const handleOk = async () => {
         if (isEditing) {
-            setIsEditing(false);
-            setTimeout(() => {
-                alert('修改成功');
-            }, 2000);
+            const data = {
+                dir:userTargetDir,
+                code:fileContent,
+                fileName:selectedFile
+            }
+            const ret = await UpdateCode(data)
+            if(!ret.code){
+                setIsEditing(false);
+                message.success("修改代码成功")
+            }
         } else {
             setIsModalVisible(false);
+            setIsEditing(false);
+            setFileVisible(false)
         }
     };
 

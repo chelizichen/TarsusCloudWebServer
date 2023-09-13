@@ -38,6 +38,14 @@ export function UploadCode(data:UploadType) {
     })
 }
 
+export function UpdateCode(data:UploadType) {
+    return request({
+        url: "/main/updatecode",
+        method: "post",
+        data,
+    })
+}
+
 export function UserDirs(id: string) {
     const data = {id}
     return request({
