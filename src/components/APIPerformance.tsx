@@ -20,46 +20,49 @@ function PerformanceChart({port}) {
     }, [port]);
 
 
-    // Group data by API endpoint
-    const groupedData = data.reduce((acc, item) => {
-        if (!acc[item.request_url]) {
-            acc[item.request_url] = [];
+    // 获取所有的时间点
+    const allTimes = [...new Set(data.map(item => item.request_start_time))].sort();
+
+    // 将数据按 request_url 分组
+    const groupedData = data.reduce((acc, curr) => {
+        if (!acc[curr.request_url]) {
+            acc[curr.request_url] = {};
         }
-        acc[item.request_url].push(item);
+        acc[curr.request_url][curr.request_start_time] = curr.response_time_ms;
         return acc;
     }, {});
 
-    const series = Object.keys(groupedData).map(url => ({
-        name: url,
-        type: 'line',
-        data: groupedData[url].map(item => item.response_time_ms)
-    }));
+    // 为每个 request_url 创建一个系列
+    const series = Object.keys(groupedData).map((url) => {
+        return {
+            name: url,
+            type: 'line',
+            data: allTimes.map(time => groupedData[url][time] || null),
+        };
+    });
 
     const option = {
         title: {
             text: 'Response Time Analysis by Endpoint'
         },
-        tooltip: {
-            trigger: 'axis'
+        xAxis: {
+            type: 'category',
+            data: allTimes,
         },
-        grid: {
-            left: '5%',
-            right: '5%'
+        yAxis: {
+            type: 'value',
         },
         legend: {
             data: Object.keys(groupedData).map(item=>({name:item,icon:'rectangle'})),
             right: 20,
             itemHeight: 10,
+            orient:"vertical",
         },
-        xAxis: {
-            type: 'category',
-            data: data.map(item => item.request_start_time) // Assuming request_start_time is a timestamp or date
+        tooltip: {
+            show: true,
+            trigger:"item"
         },
-        yAxis: {
-            type: 'value',
-            name: 'ms'
-        },
-        series: series
+        series,
     };
 
     return (

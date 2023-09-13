@@ -11,6 +11,7 @@ import useStore from "../store";
 import { useNavigate } from 'react-router-dom';
 import Logger from "../components/APIPerformance.tsx";
 import Editor from "../components/Editor.tsx";
+import {baseApiContent} from "../components/BaseApiContent.ts";
 
 const UserDashboard = ({ userInfo }: any) => {
     const navigate = useNavigate();
@@ -26,11 +27,13 @@ const UserDashboard = ({ userInfo }: any) => {
     const setPort = useStore((state) => state.setInvokePort);
     const port = useStore((state) => state.invokePort);
     const setCurrDir = useStore((state) => state.setCurrDir);
+
     const loadDirs = ()=>{
         UserDirs(userInfo.id).then(res => {
             setUserDirs((res.data))
         })
     }
+
     const [apiCharts,setApiCharts] = useState({})
     useEffect(() => {
         loadDirs()
@@ -57,7 +60,7 @@ const UserDashboard = ({ userInfo }: any) => {
             },]
             setDirs(dirArray)
         })
-    }, [userDirs, index])
+    }, [userDirs, index,apiCharts])
 
 
     // 文件逻辑
@@ -184,27 +187,6 @@ const UserDashboard = ({ userInfo }: any) => {
         });
 
 
-
-    const getOption2 = () => {
-        return {
-            title: {
-                text: 'Response Time (Last 30 days)'
-            },
-            xAxis: {
-                type: 'category',
-                data: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'] // Sample data
-            },
-            yAxis: {
-                type: 'value'
-            },
-            series: [{
-                data: [20, 50, 30, 40, 60, 50, 80], // Sample data
-                type: 'line'
-            }]
-        };
-    };
-
-
     const handleRestart = async (record) => {
         setRestartingPorts(prev => ({ ...prev, [record.port]: true }));
         const data = await Reload(record.port);
@@ -248,6 +230,12 @@ const UserDashboard = ({ userInfo }: any) => {
     const handleDirectoryChange = (value) => {
         setSelectedDirectory(value);
     };
+
+    const [fileType,setFileType] = useState("typescript")
+    const handleFileTypeChange = (value)=>{
+        setFileType(value)
+    }
+
 
     const extractDirectories = (data, parentPath = '') => {
         let dirs = [];
@@ -295,11 +283,11 @@ const UserDashboard = ({ userInfo }: any) => {
 
     const [isWriteFileOpen,setWriteOpen] = useState(false)
     const fileNameRef = useRef<InputRef>({} as InputRef);
-    const [editorVal,setEditorVal] = useState('console.log(\'Hello, world!\');')
+    const [editorVal,setEditorVal] = useState(baseApiContent)
     const uploadCode = async ()=>{
         const data = {
             dir:selectedDirectory,
-            fileName:fileNameRef.current.input.value as string,
+            fileName:fileNameRef.current.input.value as string + fileType,
             code:editorVal
         }
         const ret = await UploadCode(data)
@@ -359,13 +347,21 @@ const UserDashboard = ({ userInfo }: any) => {
                             <Select
                                 placeholder="Select a directory"
                                 onChange={handleDirectoryChange}
-                                style={{ width: '100%', marginBottom: '20px' }}
+                                style={{ width: '200px', marginBottom: '20px' }}
                             >
                                 {allDirectories.map(dir => (
                                     <Select.Option key={dir} value={dir}>{dir}</Select.Option>
                                 ))}
                             </Select>
-                            <Input ref={fileNameRef} style={{height:"32px"}}></Input>
+                            <Input ref={fileNameRef} style={{height:"32px",width:"200px"}}></Input>
+                            <Select
+                                placeholder="FileType"
+                                onChange={handleFileTypeChange}
+                                style={{ width: '70', marginBottom: '20px' }}
+                            >
+                                <Select.Option key={".ts"} value={".ts"}>{".ts"}</Select.Option>
+                                <Select.Option key={".js"} value={".js"}>{".js"}</Select.Option>
+                            </Select>
                         </div>
                         <Editor language="typescript" value={editorVal}  onChange={(newValue) => setEditorVal(newValue)}></Editor>
                         <Button onClick={uploadCode} type={"primary"}>upload code</Button>
@@ -404,7 +400,6 @@ const UserDashboard = ({ userInfo }: any) => {
                 <Table columns={columns} dataSource={userDirs} rowKey="port" bordered />
                 <Logger port={port}></Logger>
                 <ReactECharts option={apiCharts} style={{ height: '300px', marginBottom: '20px' }} />
-                <ReactECharts option={getOption2()} style={{ height: '300px' }} />
             </Col>
         </Row>
     );

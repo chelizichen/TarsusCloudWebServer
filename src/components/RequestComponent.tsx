@@ -4,6 +4,8 @@ import ExtractFilePaths from "../utils/extractFilePaths.ts";
 import {invokeFunction} from "../api/user.ts";
 import join from "../utils/join.ts";
 import useStore from "../store";
+import JSONView from 'react-json-view';
+import './RequestComponent.css';
 
 const { Option } = Select;
 
@@ -12,6 +14,7 @@ const RequestComponent = ({ functions }) => {
     const [inputValue, setInputValue] = useState('');
     const [output, setOutput] = useState('');
     const [Functions,setFunctions] = useState([])
+    const [json,setJson] = useState({})
     useEffect(()=>{
         if(!functions){
             return
@@ -25,19 +28,13 @@ const RequestComponent = ({ functions }) => {
 
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
+        setJson(JSON.parse(e.target.value))
     };
     const state = useStore.getState()
     const handleInvoke = async () => {
         console.log('selectedFunction',selectedFunction)
         const functionPath = join(state.currDir,selectedFunction)
         const data = await invokeFunction(functionPath,JSON.parse(inputValue));
-        console.log(data)
-        // 这里你可以调用你的 FaaS 函数
-        // 假设你有一个函数来处理这个，例如：invokeFunction
-        // const result = invokeFunction(selectedFunction, inputValue);
-        // setOutput(result);
-
-        // 为了模拟，我们只是使用输入值
         setOutput(`
         Function ${selectedFunction} invoked with output: ${JSON.stringify(data.data)}
         
@@ -64,11 +61,20 @@ const RequestComponent = ({ functions }) => {
             </Select>
             <br />
             <br />
-            <Input
+            <Input.TextArea
                 placeholder="Enter function input"
                 value={inputValue}
                 onChange={handleInputChange}
+                style={{letterSpacing:"3px",width:"auto",height:"100px"}}
+
             />
+            <br />
+            <br />
+            <JSONView
+                src={json}
+                enableClipboard={true}
+            />
+
             <br />
             <br />
             <Button type="primary" onClick={handleInvoke}>
