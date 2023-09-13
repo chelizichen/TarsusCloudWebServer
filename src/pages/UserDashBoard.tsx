@@ -301,11 +301,10 @@ const UserDashboard = ({ userInfo }: any) => {
     const uploadCode = ()=>{
         const data = {
             dir:selectedDirectory,
-            fileName:fileNameRef.current.input.value,
+            fileName:fileNameRef.current.input.value as string,
             code:editorVal
         }
-        console.log(data)
-        // UploadCode()
+        UploadCode(data)
     }
     const handleEditorChange = (newVal) =>{
         setEditorVal(newVal);
