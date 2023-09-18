@@ -88,7 +88,11 @@ const UserDashboard = ({userInfo}: any) => {
                 setFileVisible(true);
             })
         }else {
-            item.name = item.key
+            if(userTargetDir == item.key){
+                item.name = join(userTargetDir)
+            }else {
+                item.name = join(userTargetDir,item.key)
+            }
             setCurrentFolder(item);
             setIsAddFolderVisable(true);
         }
@@ -202,32 +206,27 @@ const UserDashboard = ({userInfo}: any) => {
     const [form] = Form.useForm();
     const handleMkDir = async ()=>{
         const dir = form.getFieldValue("directoryName") as string
-        const data = await MakeDir(currentFolder.key,dir)
+        const data = await MakeDir(currentFolder.name,dir)
         if(!data.code){
             message.success("创建目录成功")
         }
     }
     // Recursive directory tree
-    const renderDirectoryTree = (data) =>
-        data.map((item) => {
-            let baseItem = {
-                title: item.name,
-                key: item.path,
-                type: item.type,
-            };
-
+    const renderDirectoryTree = (data: any) =>
+        data.map((item: any) => {
             if (item.type === 'folder') {
                 return {
-                    ...baseItem,
-                    icon: [
-                        <FolderOutlined className="ant-tree-icon-folder"/>
-                    ],
+                    title: item.name,
+                    key: item.path,
+                    type: item.type,
+                    icon: <FolderOutlined className="ant-tree-icon-folder"/>,
                     children: renderDirectoryTree(item.children || []),
                 };
             }
-
             return {
-                ...baseItem,
+                title: item.name,
+                key: item.path,
+                type: item.type,
                 icon: <FileOutlined className="ant-tree-icon-file"/>,
             };
         });
