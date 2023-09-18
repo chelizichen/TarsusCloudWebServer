@@ -12,7 +12,7 @@ import {
     UploadCode,
     UpdateCode,
     getApiCallsCharts,
-    ShutDown
+    ShutDown, getStats
 } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
@@ -175,7 +175,7 @@ const UserDashboard = ({userInfo}: any) => {
                 <span>
                     <Button type="primary" onClick={() => handleRestart(record)}
                             loading={restartingPorts[record.port]}>restart</Button>
-                    <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.node)}>stats</Button>
+                    <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.pid)}>stats</Button>
                     <Button style={{margin: '0 8px'}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
                 </span>
             ),
@@ -219,8 +219,12 @@ const UserDashboard = ({userInfo}: any) => {
         }, 2000);
     };
 
-    const handleCheckStatus = (node) => {
+    const handleCheckStatus = async (node) => {
         console.log('Checking status for node:', node);
+        const data = await getStats(node)
+        if(!data.code){
+            message.success("该节点状态正常")
+        }
         // ... your check status logic here ...
     };
 

@@ -31,6 +31,16 @@ export function Touch(data: any, dir: string) {
     })
 }
 
+export function getStats(pid) {
+    return request({
+        url: "/main/stats",
+        method: "post",
+        data: {
+            pid
+        }
+    })
+}
+
 type UploadType = { dir: string; code: string; fileName: string };
 
 export function UploadCode(data: UploadType) {
