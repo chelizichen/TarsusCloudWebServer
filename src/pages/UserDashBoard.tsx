@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input, InputRef} from 'antd';
-import {FolderOutlined, FileOutlined, ReloadOutlined} from '@ant-design/icons';
+import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input, InputRef, Form} from 'antd';
+import {FolderOutlined, FileOutlined, ReloadOutlined, PlusOutlined} from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import CodeBlock from '../components/HighLightCode';
 import {getUserContent} from "../api/user.ts";
@@ -12,7 +12,7 @@ import {
     UploadCode,
     UpdateCode,
     getApiCallsCharts,
-    ShutDown, getStats
+    ShutDown, getStats, MakeDir
 } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
@@ -20,6 +20,7 @@ import {useNavigate} from 'react-router-dom';
 import Logger from "../components/APIPerformance.tsx";
 import Editor from "../components/Editor.tsx";
 import {baseApiContent} from "../components/BaseApiContent.ts";
+import CreateProjectComponent from "../components/ProjectInfo.tsx";
 
 const UserDashboard = ({userInfo}: any) => {
     const navigate = useNavigate();
@@ -86,6 +87,10 @@ const UserDashboard = ({userInfo}: any) => {
                 setFileContent(res.data.content); // 模拟文件内容
                 setFileVisible(true);
             })
+        }else {
+            item.name = item.key
+            setCurrentFolder(item);
+            setIsAddFolderVisable(true);
         }
     };
 
@@ -122,7 +127,7 @@ const UserDashboard = ({userInfo}: any) => {
 
     const handleShutDown = async (port) => {
         const data = await ShutDown(port)
-        if(!data.code){
+        if (!data.code) {
             message.success("成功关闭该节点")
         }
     }
@@ -155,7 +160,16 @@ const UserDashboard = ({userInfo}: any) => {
             title: 'PID',
             dataIndex: 'pid',
             key: 'pid',
-            align: "center",
+        },
+        {
+            title: 'DESC',
+            dataIndex: 'description',
+            key: 'description',
+        },
+        {
+            title: 'VERSION',
+            dataIndex: 'release_version',
+            key: 'release_version',
         },
         {
             title: 'DataBase',
@@ -176,33 +190,56 @@ const UserDashboard = ({userInfo}: any) => {
                     <Button type="primary" onClick={() => handleRestart(record)}
                             loading={restartingPorts[record.port]}>restart</Button>
                     <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.pid)}>stats</Button>
-                    <Button style={{margin: '0 8px'}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
+                    <Button style={{margin: '0 8px',background:"purple",color:"white"}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
+                    <Button style={{margin: '0 8px',background:"orange"}}>release</Button>
                 </span>
             ),
         },
     ];
 
-
+    const [isAddFolderVisable, setIsAddFolderVisable] = useState(false);
+    const [currentFolder, setCurrentFolder] = useState(null);
+    const [form] = Form.useForm();
+    const handleMkDir = async ()=>{
+        const dir = form.getFieldValue("directoryName") as string
+        const data = await MakeDir(currentFolder.key,dir)
+        if(!data.code){
+            message.success("创建目录成功")
+        }
+    }
     // Recursive directory tree
-    const renderDirectoryTree = (data: any) =>
-        data.map((item: any) => {
-            if (item.type === 'folder') {
-                return {
-                    title: item.name,
-                    key: item.path,
-                    type: item.type,
-                    icon: <FolderOutlined className="ant-tree-icon-folder"/>,
-                    children: renderDirectoryTree(item.children || []),
-                };
-            }
-            return {
+    const renderDirectoryTree = (data) =>
+        data.map((item) => {
+            let baseItem = {
                 title: item.name,
                 key: item.path,
                 type: item.type,
+            };
+
+            if (item.type === 'folder') {
+                return {
+                    ...baseItem,
+                    icon: [
+                        <FolderOutlined className="ant-tree-icon-folder"/>
+                    ],
+                    children: renderDirectoryTree(item.children || []),
+                };
+            }
+
+            return {
+                ...baseItem,
                 icon: <FileOutlined className="ant-tree-icon-file"/>,
             };
         });
 
+    const handleAddDirectory = (values) => {
+        // 这里你可以更新你的目录数据
+        // 例如：currentFolder.children.push(newDirectory)
+        // 然后重新渲染目录树
+
+        setIsAddFolderVisable(false);
+        form.resetFields();
+    };
 
     const handleRestart = async (record) => {
         setRestartingPorts(prev => ({...prev, [record.port]: true}));
@@ -222,7 +259,7 @@ const UserDashboard = ({userInfo}: any) => {
     const handleCheckStatus = async (node) => {
         console.log('Checking status for node:', node);
         const data = await getStats(node)
-        if(!data.code){
+        if (!data.code) {
             message.success("该节点状态正常")
         }
         // ... your check status logic here ...
@@ -319,7 +356,7 @@ const UserDashboard = ({userInfo}: any) => {
         message.success("上传代码成功")
         setWriteOpen(false)
     }
-
+    const [isCreateProjectVisible, setIsCreateProjectVisible] = useState(false);
     return (
         <Row style={{height: '100vh'}}>
             <Col span={6} style={{borderRight: '1px solid #e8e8e8', padding: '20px'}}>
@@ -418,8 +455,36 @@ const UserDashboard = ({userInfo}: any) => {
                     </Button>
 
                 </Modal>
+                <Modal
+                    title={`Add Directory to ${currentFolder?.name}`}
+                    open={isAddFolderVisable}
+                    onCancel={() => setIsAddFolderVisable(false)}
+                    footer={null}
+                >
+                    <Form form={form} onFinish={handleAddDirectory}>
+                        <Form.Item
+                            name="directoryName"
+                            rules={[{required: true, message: 'Please input directory name!'}]}
+                        >
+                            <Input placeholder="Directory Name"/>
+                        </Form.Item>
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit" onClick={handleMkDir}>
+                                Add
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </Modal>
             </Col>
             <Col span={18} style={{padding: '20px'}}>
+                <Button
+                    type="primary"
+                    onClick={() => setIsCreateProjectVisible(!isCreateProjectVisible)}
+                >Create Project
+                </Button>
+                <CreateProjectComponent visible={isCreateProjectVisible}
+                                        onCancel={() => setIsCreateProjectVisible(false)}
+                                        userInfo={userInfo}/>
                 <Table columns={columns} dataSource={userDirs} rowKey="port" bordered/>
                 <Logger port={port}></Logger>
                 <ReactECharts option={apiCharts} style={{height: '300px', marginBottom: '20px'}}/>

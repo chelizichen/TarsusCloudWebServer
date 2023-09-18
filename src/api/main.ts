@@ -1,5 +1,6 @@
 import request from "../utils/request.ts";
 import proxy from "../utils/proxy.ts";
+import join from "../utils/join.ts";
 
 // 关闭节点
 export function ShutDown(port: number) {
@@ -10,6 +11,19 @@ export function ShutDown(port: number) {
         data
     })
 }
+
+export function MakeDir(...args:string[]) {
+    console.log(args)
+    let dir = join(...args)
+    console.log(dir)
+    const data = {dir}
+    return request({
+        url: "/main/mkdir",
+        method: "post",
+        data
+    })
+}
+
 
 export function Reload(port: number) {
     const data = {port: Number(port)}
@@ -68,6 +82,13 @@ export function UserDirs(id: string) {
     })
 }
 
+export function  CreateProject(data) {
+    return request({
+        url: "/main/project/create",
+        method: "post",
+        data
+    })
+}
 
 export async function getApiCallsCharts(port: string) {
     const options =  {
