@@ -21,6 +21,7 @@ import Logger from "../components/APIPerformance.tsx";
 import Editor from "../components/Editor.tsx";
 import {baseApiContent} from "../components/BaseApiContent.ts";
 import CreateProjectComponent from "../components/ProjectInfo.tsx";
+import ReleasePackageModal from "../components/ReleasePackage.tsx";
 
 const UserDashboard = ({userInfo}: any) => {
     const navigate = useNavigate();
@@ -356,6 +357,21 @@ const UserDashboard = ({userInfo}: any) => {
         setWriteOpen(false)
     }
     const [isCreateProjectVisible, setIsCreateProjectVisible] = useState(false);
+    const [isReleaseVisible, setIsReleaseVisible] = useState(false);
+
+    const showReleaseModal = () => {
+        setIsReleaseVisible(true);
+    };
+
+    const handleReleaseOk = (values) => {
+        console.log('Received values from form: ', values);
+        setIsReleaseVisible(false);
+    };
+
+    const handleReleaseCancel = () => {
+        setIsReleaseVisible(false);
+    };
+
     return (
         <Row style={{height: '100vh'}}>
             <Col span={6} style={{borderRight: '1px solid #e8e8e8', padding: '20px'}}>
@@ -481,6 +497,12 @@ const UserDashboard = ({userInfo}: any) => {
                     onClick={() => setIsCreateProjectVisible(!isCreateProjectVisible)}
                 >Create Project
                 </Button>
+                <Button style={{margin: '0 8px',background:"green",color:"white"}} onClick={showReleaseModal}>Release Package</Button>
+                <ReleasePackageModal
+                    visible={isReleaseVisible}
+                    onCancel={handleReleaseCancel}
+                    onOk={handleReleaseOk}
+                />
                 <CreateProjectComponent visible={isCreateProjectVisible}
                                         onCancel={() => setIsCreateProjectVisible(false)}
                                         userInfo={userInfo}/>
