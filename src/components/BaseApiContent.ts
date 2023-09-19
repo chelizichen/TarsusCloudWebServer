@@ -1,8 +1,5 @@
 const baseApiContent = `
 import {FastifyReply, FastifyRequest, RouteShorthandOptions} from "fastify";
-import {Reply, ReplyBody} from "../../../main_control/define";
-
-const routes = process.env.routes_path;
 
 const opts: RouteShorthandOptions = {
     schema: {
@@ -41,11 +38,14 @@ type CustomRequest = FastifyRequest<{
 
 const handleFunc = async (request: CustomRequest, reply: FastifyReply) => {
     const {userId} =  request.body;
-    const {userId} =  request.query;
     /**
     * finish your code
     */
-    return Reply(ReplyBody.success, ReplyBody.success_message, {userId})
+    return {
+        code:0,
+        message:'success',
+        data:{}
+    }
 }
 
 export default [opts, handleFunc]
