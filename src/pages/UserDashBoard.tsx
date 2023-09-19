@@ -12,7 +12,7 @@ import {
     UploadCode,
     UpdateCode,
     getApiCallsCharts,
-    ShutDown, getStats, MakeDir
+    ShutDown, getStats, MakeDir, ReleasePkg
 } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
@@ -363,8 +363,14 @@ const UserDashboard = ({userInfo}: any) => {
         setIsReleaseVisible(true);
     };
 
-    const handleReleaseOk = (values) => {
+    const handleReleaseOk = async (values) => {
+        values.user_id = userInfo.id
+        const {id:dir_id,dir:dir_path} = JSON.parse(values.dir_obj);
+        values.dir_id = dir_id;
+        values.dir_path = dir_path;
         console.log('Received values from form: ', values);
+        const data = await ReleasePkg(values)
+        console.log(data)
         setIsReleaseVisible(false);
     };
 
@@ -373,7 +379,7 @@ const UserDashboard = ({userInfo}: any) => {
     };
 
     return (
-        <Row style={{height: '100vh'}}>
+        <Row style={{height: 'auto'}}>
             <Col span={6} style={{borderRight: '1px solid #e8e8e8', padding: '20px'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
                     <h3>Directory</h3>
@@ -501,6 +507,7 @@ const UserDashboard = ({userInfo}: any) => {
                 <ReleasePackageModal
                     visible={isReleaseVisible}
                     onCancel={handleReleaseCancel}
+                    dirs = {userDirs}
                     onOk={handleReleaseOk}
                 />
                 <CreateProjectComponent visible={isCreateProjectVisible}

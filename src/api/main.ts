@@ -90,6 +90,14 @@ export function  CreateProject(data) {
     })
 }
 
+export function  ReleasePkg(data) {
+    return request({
+        url: "/main/release/create",
+        method: "post",
+        data
+    })
+}
+
 export async function getApiCallsCharts(port: string) {
     const options =  {
         title: {

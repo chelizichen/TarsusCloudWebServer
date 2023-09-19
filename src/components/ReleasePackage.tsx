@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { Modal, Form, Input, InputNumber } from 'antd';
+import React, {useEffect, useState} from 'react';
+import { Modal, Form, Input, InputNumber, Select } from 'antd';
 
-const ReleasePackageModal = ({ visible, onCancel, onOk }) => {
+const ReleasePackageModal = ({ visible, onCancel, onOk,dirs }) => {
     const [form] = Form.useForm();
-
+    useEffect(() => {
+        console.log("dirs",dirs)
+    }, [dirs]);
     return (
         <Modal
             title="Release Package"
@@ -34,22 +36,6 @@ const ReleasePackageModal = ({ visible, onCancel, onOk }) => {
                 }}
             >
                 <Form.Item
-                    name="dir_id"
-                    label="Directory ID"
-                    rules={[{ required: true, message: 'Please input the directory ID!' }]}
-                >
-                    <InputNumber />
-                </Form.Item>
-
-                <Form.Item
-                    name="user_id"
-                    label="User ID"
-                    rules={[{ required: true, message: 'Please input the user ID!' }]}
-                >
-                    <Input />
-                </Form.Item>
-
-                <Form.Item
                     name="package_info"
                     label="Package Info"
                     rules={[{ required: true, message: 'Please input the package info!' }]}
@@ -66,11 +52,17 @@ const ReleasePackageModal = ({ visible, onCancel, onOk }) => {
                 </Form.Item>
 
                 <Form.Item
-                    name="dir_path"
+                    name="dir_obj"
                     label="Directory Path"
                     rules={[{ required: true, message: 'Please input the directory path!' }]}
                 >
-                    <Input />
+                        <Select>
+                            {dirs.map(item => (
+                                <Select.Option key={item.dir} value={JSON.stringify(item)}>
+                                    {item.dir}
+                                </Select.Option>
+                            ))}
+                        </Select>
                 </Form.Item>
             </Form>
         </Modal>
