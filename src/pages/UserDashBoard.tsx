@@ -11,7 +11,7 @@ import {
     UploadCode,
     UpdateCode,
     getApiCallsCharts,
-    ShutDown, getStats, MakeDir, ReleasePkg
+    ShutDown, getStats, MakeDir, ReleasePkg, getTaroFile
 } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
@@ -24,6 +24,7 @@ import SelectFileComponent from '../components/SelectFileComponent.tsx';
 import WriteFileComponent from '../components/WriteFileComponent.tsx';
 import UploadFileComponent from '../components/UploadFileComponent.tsx';
 import AddDirComponent from '../components/AddDirComponent.tsx';
+import TaroFileComponent from "../components/TaroFileComponent.tsx";
 
 const UserDashboard = ({userInfo}: any) => {
     const navigate = useNavigate();
@@ -139,7 +140,16 @@ const UserDashboard = ({userInfo}: any) => {
         }
     }
 
-
+    const [taroFileVisible,setTaroFileVisible] = useState(false)
+    const [taroEditorVal, setTaroEditorVal] = useState("")
+    const [taroDir,setTaroDir] = useState("")
+    const handleGetTaroFile = async (dir:string)=>{
+        setTaroDir(dir)
+        const data = await getTaroFile({dir})
+        setTaroEditorVal(data.data)
+        setTaroFileVisible(true)
+        console.log(data)
+    }
     const columns = [
         {
             title: 'Port',
@@ -198,7 +208,7 @@ const UserDashboard = ({userInfo}: any) => {
                             loading={restartingPorts[record.port]}>restart</Button>
                     <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.pid)}>stats</Button>
                     <Button style={{margin: '0 8px',background:"purple",color:"white"}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
-                    <Button style={{margin: '0 8px',background:"orange"}}>release</Button>
+                    <Button style={{margin: '0 8px',background:"orange"}} onClick={()=>handleGetTaroFile(record.dir)}>{record.dir}.taro</Button>
                 </span>
             ),
         },
@@ -440,6 +450,13 @@ const UserDashboard = ({userInfo}: any) => {
                     form={form}
                     handleMkDir={handleMkDir}
                 ></AddDirComponent>
+                <TaroFileComponent
+                    taroDir={taroDir}
+                    taroEditorVal={taroEditorVal}
+                    setTaroEditorVal={setTaroEditorVal}
+                    taroFileVisible={taroFileVisible}
+                    setTaroFileVisible={setTaroFileVisible}
+                ></TaroFileComponent>
             </Col>
             <Col span={18} style={{padding: '20px'}}>
                 <Button

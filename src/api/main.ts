@@ -130,9 +130,10 @@ export async function getApiCallsCharts(port: string) {
     return options
 }
 
-async function getTaroFile(data:{
+export async function getTaroFile(data:{
     dir:string
 }) {
+    console.log('data',data)
     return request({
         url: "/main/taro/get",
         method: "post",
@@ -140,7 +141,7 @@ async function getTaroFile(data:{
     })
 }
 
-async function touchTaroFile(data:{
+export async function touchTaroFile(data:{
     dir:string,
     content:string
 }) {
