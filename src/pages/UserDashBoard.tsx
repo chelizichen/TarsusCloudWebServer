@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Tree, Row, Col, Table, Button, Modal, Spin, message, Upload, Select, Input, InputRef, Form} from 'antd';
 import {FolderOutlined, FileOutlined, ReloadOutlined, PlusOutlined} from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
-import CodeBlock from '../components/HighLightCode';
 import {getUserContent} from "../api/user.ts";
 import join from "../utils/join.ts";
 import {
@@ -18,10 +17,13 @@ import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
 import {useNavigate} from 'react-router-dom';
 import Logger from "../components/APIPerformance.tsx";
-import Editor from "../components/Editor.tsx";
 import {baseApiContent} from "../components/BaseApiContent.ts";
 import CreateProjectComponent from "../components/ProjectInfo.tsx";
 import ReleasePackageModal from "../components/ReleasePackage.tsx";
+import SelectFileComponent from '../components/SelectFileComponent.tsx';
+import WriteFileComponent from '../components/WriteFileComponent.tsx';
+import UploadFileComponent from '../components/UploadFileComponent.tsx';
+import AddDirComponent from '../components/AddDirComponent.tsx';
 
 const UserDashboard = ({userInfo}: any) => {
     const navigate = useNavigate();
@@ -399,103 +401,45 @@ const UserDashboard = ({userInfo}: any) => {
                     WriteFile File
                 </Button>
                 <RequestComponent functions={dirs}/>
-                <Modal
-                    title={`文件内容 - ${selectedFile}`}
-                    open={isFileVisible}
-                    onOk={handleOk}
-                    width={'50%'}
-                    onCancel={() => setFileVisible(false)}
-                    footer={[
-                        <Button key="edit" onClick={handleEdit} disabled={isEditing}>
-                            修改
-                        </Button>,
-                        <Button key="submit" type="primary" onClick={handleOk}>
-                            {isEditing ? '确定' : '关闭'}
-                        </Button>,
-                    ]}
-                >
-                    {isEditing ? (
-                        <Input.TextArea value={fileContent} onChange={(e) => setFileContent(e.target.value)} rows={30}/>
-                    ) : (
-                        <CodeBlock code={fileContent}/>
-                    )}
-                </Modal>
-                <Modal title="Write File" open={isWriteFileOpen} onCancel={() => setWriteOpen(false)} footer={null}
-                       width={900}>
-                    <div id={'container'}>
-                        <div style={{display: "flex"}}>
-                            <Select
-                                placeholder="Select a directory"
-                                onChange={handleDirectoryChange}
-                                style={{width: '200px', marginBottom: '20px'}}
-                            >
-                                {allDirectories.map(dir => (
-                                    <Select.Option key={dir} value={dir}>{dir}</Select.Option>
-                                ))}
-                            </Select>
-                            <Input ref={fileNameRef} style={{height: "32px", width: "200px"}}></Input>
-                            <Select
-                                placeholder="FileType"
-                                onChange={handleFileTypeChange}
-                                style={{width: '70', marginBottom: '20px'}}
-                            >
-                                <Select.Option key={".ts"} value={".ts"}>{".ts"}</Select.Option>
-                                <Select.Option key={".js"} value={".js"}>{".js"}</Select.Option>
-                            </Select>
-                        </div>
-                        <Editor language="typescript" value={editorVal}
-                                onChange={(newValue) => setEditorVal(newValue)}></Editor>
-                        <Button onClick={uploadCode} type={"primary"}>upload code</Button>
-                    </div>
-                </Modal>
-                <Modal title="Upload File" open={isModalVisible} onCancel={handleCancel} footer={null}>
-                    <Select
-                        placeholder="Select a directory"
-                        onChange={handleDirectoryChange}
-                        style={{width: '100%', marginBottom: '20px'}}
-                    >
-                        {allDirectories.map(dir => (
-                            <Select.Option key={dir} value={dir}>{dir}</Select.Option>
-                        ))}
-                    </Select>
-                    <Upload
-                        disabled={!selectedDirectory}
-                        fileList={fileList}
-                        onChange={({fileList}) => setFileList(fileList)}
-                        beforeUpload={() => false} // Prevent automatic upload
-                        // ... other Upload props
-                    >
-                        <Button disabled={!selectedDirectory}>Select File</Button>
-                    </Upload>
-                    <Button
-                        type="primary"
-                        onClick={handleUpload}
-                        disabled={!selectedDirectory || !fileList.length}
-                    >
-                        Upload
-                    </Button>
-
-                </Modal>
-                <Modal
-                    title={`Add Directory to ${currentFolder?.name}`}
-                    open={isAddFolderVisable}
-                    onCancel={() => setIsAddFolderVisable(false)}
-                    footer={null}
-                >
-                    <Form form={form} onFinish={handleAddDirectory}>
-                        <Form.Item
-                            name="directoryName"
-                            rules={[{required: true, message: 'Please input directory name!'}]}
-                        >
-                            <Input placeholder="Directory Name"/>
-                        </Form.Item>
-                        <Form.Item>
-                            <Button type="primary" htmlType="submit" onClick={handleMkDir}>
-                                Add
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </Modal>
+                <SelectFileComponent 
+                    selectedFile={selectedFile}
+                    handleOk={handleOk}
+                    isFileVisible={isFileVisible}
+                    handleEdit={handleEdit}
+                    isEditing={isEditing}
+                    setFileVisible={setFileVisible}
+                    fileContent={fileContent}
+                    setFileContent={setFileContent}
+                ></SelectFileComponent>
+                <WriteFileComponent
+                    isWriteFileOpen={isWriteFileOpen}
+                    handleDirectoryChange={handleDirectoryChange}
+                    allDirectories={allDirectories}
+                    fileNameRef={fileNameRef}
+                    handleFileTypeChange={handleFileTypeChange}
+                    editorVal={editorVal}
+                    setEditorVal={setEditorVal}
+                    uploadCode={uploadCode}
+                    setWriteOpen={setWriteOpen}
+                ></WriteFileComponent>
+                <UploadFileComponent 
+                    isModalVisible={isModalVisible}
+                    handleDirectoryChange={handleDirectoryChange}
+                    allDirectories={allDirectories}
+                    selectedDirectory={selectedDirectory}
+                    setFileList={setFileList}
+                    fileList={fileList}
+                    handleUpload={handleUpload}
+                    handleCancel={handleCancel}
+                ></UploadFileComponent>
+                <AddDirComponent 
+                    currentFolder={currentFolder}
+                    isAddFolderVisable={isAddFolderVisable}
+                    setIsAddFolderVisable={setIsAddFolderVisable}
+                    handleAddDirectory={handleAddDirectory}
+                    form={form}
+                    handleMkDir={handleMkDir}
+                ></AddDirComponent>
             </Col>
             <Col span={18} style={{padding: '20px'}}>
                 <Button
