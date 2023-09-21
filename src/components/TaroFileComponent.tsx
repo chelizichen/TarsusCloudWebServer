@@ -1,4 +1,4 @@
-import {Modal, Button, Input, Select} from "antd"
+import {Modal, Button, Input, Select, message} from "antd"
 import Editor from "./Editor"
 import {touchTaroFile} from "../api/main.ts";
 
@@ -10,11 +10,14 @@ function TaroFileVisible(
         taroFileVisible,
         setTaroFileVisible,
     }) {
-    const uploadCode = ()=>{
-        touchTaroFile({
+    const uploadCode = async ()=>{
+        const data = await touchTaroFile({
             dir:taroDir,
             content:taroEditorVal
         })
+        if(!data.code){
+            message.success("发布成功")
+        }
     }
     return (
         <Modal title="Taro proto File" open={taroFileVisible} onCancel={() => setTaroFileVisible(false)} footer={null}
