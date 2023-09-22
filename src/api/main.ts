@@ -89,7 +89,16 @@ export function  CreateProject(data) {
         data
     })
 }
-
+export function  DeleteProject(data:{
+    id:string;
+    dir:string;
+}) {
+    return request({
+        url: "/main/project/delete",
+        method: "post",
+        data
+    })
+}
 export function  ReleasePkg(data) {
     return request({
         url: "/main/release/create",

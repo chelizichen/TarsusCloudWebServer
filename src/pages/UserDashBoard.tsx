@@ -11,7 +11,7 @@ import {
     UploadCode,
     UpdateCode,
     getApiCallsCharts,
-    ShutDown, getStats, MakeDir, ReleasePkg, getTaroFile
+    ShutDown, getStats, MakeDir, ReleasePkg, getTaroFile, DeleteProject
 } from "../api/main.ts";
 import RequestComponent from "../components/RequestComponent.tsx";
 import useStore from "../store";
@@ -150,6 +150,15 @@ const UserDashboard = ({userInfo}: any) => {
         setTaroFileVisible(true)
         console.log(data)
     }
+
+    const handleDeleteProject = async (id,dir)=>{
+        const ret = await DeleteProject({id,dir})
+        if(ret.code){
+            message.error("删除失败")
+            return
+        }
+        loadDirs()
+    }
     const columns = [
         {
             title: 'Port',
@@ -208,7 +217,8 @@ const UserDashboard = ({userInfo}: any) => {
                             loading={restartingPorts[record.port]}>restart</Button>
                     <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.pid)}>stats</Button>
                     <Button style={{margin: '0 8px',background:"purple",color:"white"}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
-                    <Button style={{margin: '0 8px',background:"orange"}} onClick={()=>handleGetTaroFile(record.dir)}>{record.dir}.taro</Button>
+                    <Button style={{margin: '0 8px',background:"orange"}} onClick={()=>handleGetTaroFile(record.dir)}>TarsusObject</Button>
+                    <Button style={{margin: '0 8px',background:"orange"}} onClick={()=>handleDeleteProject(record.id,record.dir)}>delete</Button>
                 </span>
             ),
         },
