@@ -338,11 +338,6 @@ const UserDashboard = ({userInfo}: any) => {
         setSelectedDirectory(value);
     };
 
-    const [fileType, setFileType] = useState("typescript")
-    const handleFileTypeChange = (value) => {
-        setFileType(value)
-    }
-
 
     const extractDirectories = (data, parentPath = '') => {
         let dirs = [];
@@ -390,21 +385,12 @@ const UserDashboard = ({userInfo}: any) => {
 
     const [isWriteFileOpen, setWriteOpen] = useState(false)
     const fileNameRef = useRef<InputRef>({} as InputRef);
-    const [editorVal, setEditorVal] = useState(baseApiContent)
-    const uploadCode = async () => {
-        const data = {
-            dir: selectedDirectory,
-            fileName: fileNameRef.current.input.value as string + fileType,
-            code: editorVal
+    const [editorVal, setEditorVal] = useState("")
+    useEffect(()=>{
+        if(userTargetDir != ""){
+            setEditorVal(baseApiContent(userTargetDir))
         }
-        const ret = await UploadCode(data)
-        if (ret.code) {
-            message.error("上传代码失败 code:" + ret.code);
-            return;
-        }
-        message.success("上传代码成功")
-        setWriteOpen(false)
-    }
+    },[userTargetDir])
     const [isCreateProjectVisible, setIsCreateProjectVisible] = useState(false);
     const [isReleaseVisible, setIsReleaseVisible] = useState(false);
 
@@ -463,10 +449,9 @@ const UserDashboard = ({userInfo}: any) => {
                     handleDirectoryChange={handleDirectoryChange}
                     allDirectories={allDirectories}
                     fileNameRef={fileNameRef}
-                    handleFileTypeChange={handleFileTypeChange}
                     editorVal={editorVal}
                     setEditorVal={setEditorVal}
-                    uploadCode={uploadCode}
+                    selectedDirectory={selectedDirectory}
                     setWriteOpen={setWriteOpen}
                 ></WriteFileComponent>
                 <UploadFileComponent 

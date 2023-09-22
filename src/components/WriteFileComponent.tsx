@@ -1,5 +1,7 @@
-import { Modal, Button, Input, Select } from "antd"
+import { Modal, Button, Input, Select, message } from "antd"
 import Editor from "./Editor"
+import { UploadCode } from "../api/main"
+import { useState } from "react"
 
 function WriteFileComponent(
     {
@@ -7,12 +9,33 @@ function WriteFileComponent(
         handleDirectoryChange,
         allDirectories,
         fileNameRef,
-        handleFileTypeChange,
         editorVal,
         setEditorVal,
-        uploadCode,
-        setWriteOpen
+        setWriteOpen,
+        selectedDirectory
     }) {
+    const uploadCode = async () => {
+        if (!selectedDirectory || selectedDirectory == "") {
+            message.error("error : please check your directory is selected or not")
+            return
+        }
+        const data = {
+            dir: selectedDirectory,
+            fileName: fileNameRef.current.input.value as string + fileType,
+            code: editorVal
+        }
+        const ret = await UploadCode(data)
+        if (ret.code) {
+            message.error("上传代码失败 code:" + ret.code);
+            return;
+        }
+        message.success("上传代码成功")
+        setWriteOpen(false)
+    }
+    const [fileType, setFileType] = useState("typescript")
+    const handleFileTypeChange = (value) => {
+        setFileType(value)
+    }
     return (
         <Modal title="Write File" open={isWriteFileOpen} onCancel={() => setWriteOpen(false)} footer={null}
             width={900}>

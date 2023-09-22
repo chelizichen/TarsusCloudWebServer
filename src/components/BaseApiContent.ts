@@ -1,7 +1,8 @@
-const baseApiContent = `
+const baseApiContent = (userTargetDir:string)=>{
+    return `
 import {FastifyReply, FastifyRequest, RouteShorthandOptions} from "fastify";
 // 这里需要你手动修改
-import { load_schema } from "../../taro/*****";
+import { load_schema } from "../../taro/${userTargetDir}";
 const opts: RouteShorthandOptions = {
     schema: {
         response: {
@@ -29,6 +30,7 @@ const handleFunc = async (request: CustomRequest, reply: FastifyReply) => {
 export default [opts, handleFunc]
 
 `
+}
 
 export {
     baseApiContent
