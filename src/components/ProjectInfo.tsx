@@ -7,7 +7,9 @@ import {CreateProject} from "../api/main.ts";
 const CreateProjectComponent = ({ visible, onCancel,userInfo }) => {
     const [form] = Form.useForm();
 
-    const portOptions = [8080, 8081, 8082, 8083]; // 示例端口列表
+    const portOptions = new Array(5000).fill(0).map((_,index)=>{
+        return 10000+index 
+    }); // 示例端口列表
     const versionOptions = ['1.0', '1.1', '1.2']; // 示例版本列表
 
     const handleSubmit = async (values) => {

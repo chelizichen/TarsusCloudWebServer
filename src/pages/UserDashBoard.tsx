@@ -134,10 +134,22 @@ const UserDashboard = ({userInfo}: any) => {
     }
 
     const handleShutDown = async (port) => {
-        const data = await ShutDown(port)
-        if (!data.code) {
-            message.success("成功关闭该节点")
-        }
+        Modal.confirm({  
+            title: '关停确认',  
+            content: '确定要关停这个服务吗？',  
+            okText: '确定',  
+            cancelText: '取消',  
+            onOk:async () => {  
+              // 执行关停操作  
+              const data = await ShutDown(port)
+              if (!data.code) {
+                message.success(`服务 ${port} 已成功关停`);  
+              }
+            },  
+            onCancel: () => {  
+              message.error('关停操作已取消');  
+            },  
+          });  
     }
 
     const [taroFileVisible,setTaroFileVisible] = useState(false)
@@ -152,13 +164,29 @@ const UserDashboard = ({userInfo}: any) => {
     }
 
     const handleDeleteProject = async (id,dir)=>{
-        const ret = await DeleteProject({id,dir})
-        if(ret.code){
-            message.error("删除失败")
-            return
-        }
-        loadDirs()
+        Modal.confirm({  
+            title: '删除确认',  
+            content: '确定要删除这个项目吗？',  
+            okText: '确定',  
+            cancelText: '取消',  
+            onOk: async () => {  
+              // 执行删除操作  
+              const ret = await DeleteProject({id,dir})
+              if(ret.code){
+                  message.error("删除失败")
+                  return
+              }
+              message.success(`节点 ${id} 已成功删除`);  
+              loadDirs()
+            },  
+            onCancel: () => {  
+              message.error('删除操作已取消');  
+            },  
+          });  
+
     }
+
+    
     const columns = [
         {
             title: 'Port',
@@ -211,15 +239,15 @@ const UserDashboard = ({userInfo}: any) => {
         {
             title: '操作',
             key: 'action',
+            width:"300px",
             render: (text, record) => (
-                <span>
-                    <Button type="primary" onClick={() => handleRestart(record)}
-                            loading={restartingPorts[record.port]}>restart</Button>
-                    <Button style={{margin: '0 8px'}} onClick={() => handleCheckStatus(record.pid)}>stats</Button>
-                    <Button style={{margin: '0 8px',background:"purple",color:"white"}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
-                    <Button style={{margin: '0 8px',background:"orange"}} onClick={()=>handleGetTaroFile(record.dir)}>TarsusObject</Button>
-                    <Button style={{margin: '0 8px',background:"orange"}} onClick={()=>handleDeleteProject(record.id,record.dir)}>delete</Button>
-                </span>
+                <div>
+                    <Button type="primary" onClick={() => handleRestart(record)}loading={restartingPorts[record.port]}>restart</Button>
+                    <Button style={{margin: '4px',background:"green",color:'white'}} onClick={() => handleCheckStatus(record.pid)}>stats</Button>
+                    <Button style={{margin: '4px',background:"orange",color:'white'}} onClick={()=>handleGetTaroFile(record.dir)}>taro</Button>
+                    <Button style={{margin: '4px',background:"purple",color:"white"}} onClick={() => handleShutDown(record.port)}>shutdown</Button>
+                    <Button style={{margin: '4px',background:"red",color:'white'}} onClick={()=>handleDeleteProject(record.id,record.dir)}>delete</Button>
+                </div>
             ),
         },
     ];
