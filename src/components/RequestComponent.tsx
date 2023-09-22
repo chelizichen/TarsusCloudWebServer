@@ -12,10 +12,10 @@ const { Option } = Select;
 const RequestComponent = ({ functions }) => {
     const [selectedFunction, setSelectedFunction] = useState(null);
     const [inputValue, setInputValue] = useState('');
-    const [output, setOutput] = useState('');
+    const [output, setOutput] = useState({});
     const [Functions,setFunctions] = useState([])
     const [json,setJson] = useState({})
-    useEffect(()=>{
+    useEffect(()=>{1
         if(!functions){
             return
         }
@@ -35,10 +35,7 @@ const RequestComponent = ({ functions }) => {
         console.log('selectedFunction',selectedFunction)
         const functionPath = join(state.currDir,selectedFunction)
         const data = await invokeFunction(functionPath,JSON.parse(inputValue));
-        setOutput(`
-        Function ${selectedFunction} invoked with output: ${JSON.stringify(data.data)}
-        
-        `);
+        setOutput(data);
     };
 
     return (
@@ -83,7 +80,11 @@ const RequestComponent = ({ functions }) => {
             <br />
             <br />
             <h4>Output:</h4>
-            <p>{output}</p>
+            <div> Function ${selectedFunction} invoked with output:</div>
+            <JSONView
+                src={output}
+                enableClipboard={true}
+            />
         </Card>
     );
 };
