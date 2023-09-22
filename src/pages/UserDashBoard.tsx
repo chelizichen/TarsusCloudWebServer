@@ -160,7 +160,6 @@ const UserDashboard = ({userInfo}: any) => {
         const data = await getTaroFile({dir})
         setTaroEditorVal(data.data)
         setTaroFileVisible(true)
-        console.log(data)
     }
 
     const handleDeleteProject = async (id,dir)=>{

@@ -1,6 +1,7 @@
 import {Modal, Button, Input, Select, message} from "antd"
 import Editor from "./Editor"
 import {touchTaroFile} from "../api/main.ts";
+import { useEffect } from "react";
 
 function TaroFileVisible(
     {
@@ -15,10 +16,18 @@ function TaroFileVisible(
             dir:taroDir,
             content:taroEditorVal
         })
-        if(!data.code){
-            message.success("发布成功")
+        if(!Number(data.code)){
+            message.success("更新协议成功")
+        }else{
+            message.error("更新协议失败")
         }
+        setTaroFileVisible(false)
     }
+
+    useEffect(()=>{
+        console.log('taroEditorVal',taroEditorVal);
+    },[taroEditorVal])
+
     return (
         <Modal title="Taro proto File" open={taroFileVisible} onCancel={() => setTaroFileVisible(false)} footer={null}
                width={900}>

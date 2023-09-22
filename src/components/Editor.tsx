@@ -36,7 +36,14 @@ const MonacoEditor: React.FC<Props> = ({language, value, onChange}) => {
     }, [onChange]);
 
     // 更新编辑器的值
-
+    useEffect(() => {
+        if (editorRef.current) {
+            const model = editorRef.current.getModel();
+            if (model && model.getValue() !== value) {
+                editorRef.current.setValue(value);
+            }
+        }
+    }, [value]);
 
     return (
         <div>
