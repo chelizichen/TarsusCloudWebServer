@@ -1,7 +1,8 @@
 import { Modal, Button, Input, Select, message } from "antd"
 import Editor from "./Editor"
-import { UploadCode } from "../api/main"
-import { useState } from "react"
+import { UploadCode, getTaroInterfaces,setTaroInterfaces } from "../api/main"
+import { useEffect, useState } from "react"
+import { baseApiContent } from "./BaseApiContent"
 
 function WriteFileComponent(
     {
@@ -12,7 +13,8 @@ function WriteFileComponent(
         editorVal,
         setEditorVal,
         setWriteOpen,
-        selectedDirectory
+        selectedDirectory,
+        userTargetDir,
     }) {
     const uploadCode = async () => {
         if (!selectedDirectory || selectedDirectory == "") {
@@ -33,9 +35,36 @@ function WriteFileComponent(
         setWriteOpen(false)
     }
     const [fileType, setFileType] = useState("typescript")
+    const [interfaces,setInterfaces] = useState([])
+    const [targetInterface,setTargetInterface] = useState("")
     const handleFileTypeChange = (value) => {
         setFileType(value)
     }
+
+    useEffect(()=>{
+        if(userTargetDir == "" || !isWriteFileOpen){
+            return;
+        }
+        getTaroInterfaces({dir:userTargetDir}).then(res=>{
+            setInterfaces(res.data || [])
+        })
+    },[userTargetDir,isWriteFileOpen])
+    
+    useEffect(()=>{
+        if(userTargetDir == "" || targetInterface == "" || !isWriteFileOpen){
+            return;
+        }
+        setTaroInterfaces({dir:userTargetDir,target:targetInterface}).then(res=>{
+            setEditorVal(baseApiContent(userTargetDir,res.data))
+        })
+    },[targetInterface,isWriteFileOpen])
+
+    const handleSetInterfaceChange = (item)=>{
+        setTargetInterface(item)
+    }
+
+
+
     return (
         <Modal title="Write File" open={isWriteFileOpen} onCancel={() => setWriteOpen(false)} footer={null}
             width={900}>
@@ -54,10 +83,24 @@ function WriteFileComponent(
                     <Select
                         placeholder="FileType"
                         onChange={handleFileTypeChange}
-                        style={{ width: '70', marginBottom: '20px' }}
+                        style={{ width: '100', marginBottom: '20px' }}
                     >
                         <Select.Option key={".ts"} value={".ts"}>{".ts"}</Select.Option>
                         <Select.Option key={".js"} value={".js"}>{".js"}</Select.Option>
+                    </Select>
+
+                    <Select
+                        placeholder="choose interface"
+                        onChange={handleSetInterfaceChange}
+                        style={{ width: '400px', marginBottom: '20px' }}
+                    >
+                        {
+                            interfaces.map(item=>{
+                                return(
+                                    <Select.Option key={item} value={item}>{item}</Select.Option>
+                                )
+                            })
+                        }
                     </Select>
                 </div>
                 <Editor language="typescript" value={editorVal}

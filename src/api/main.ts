@@ -160,3 +160,24 @@ export async function touchTaroFile(data:{
         data
     })
 }
+
+export async function getTaroInterfaces(data:{
+    dir:string,
+}) {
+    return request({
+        url: "/main/taro/interfaces",
+        method: "post",
+        data
+    })
+}
+
+export async function setTaroInterfaces(data:{
+    dir:string,
+    target:string
+}) {
+    return request({
+        url: "/main/taro/setinterface",
+        method: "post",
+        data
+    })
+}

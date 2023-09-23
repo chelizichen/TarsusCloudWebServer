@@ -453,6 +453,7 @@ const UserDashboard = ({userInfo}: any) => {
                     setEditorVal={setEditorVal}
                     selectedDirectory={selectedDirectory}
                     setWriteOpen={setWriteOpen}
+                    userTargetDir={userTargetDir}
                 ></WriteFileComponent>
                 <UploadFileComponent 
                     isModalVisible={isModalVisible}
