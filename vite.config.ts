@@ -6,6 +6,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
+    base:"tarsuscloud",
     server: {
         proxy: {
             '/primary': {
@@ -26,6 +27,6 @@ export default defineConfig({
         },
     },
     build:{
-        outDir:"dist"
+        outDir:"dist",
     }
 })

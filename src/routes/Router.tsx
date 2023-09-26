@@ -8,7 +8,6 @@ import AdminDashBoard from '../pages/AdminDashBoard'
 import LoginForm from "../pages/Login.tsx";
 import useStore from '../store';
 import DatabaseManager from '../pages/DBManager.tsx';
-import Logger from "../components/APIPerformance.tsx";
 import LoggerViewer from "../pages/LoggerViewer.tsx";
 
 const { Header, Content, Footer } = Layout;
@@ -29,15 +28,15 @@ const RouterComponent = () => {
 
     useEffect(() => {
         if(!token && !userInfo){
-            if(location.pathname != "/login"){
+            if(location.pathname != "/tarsuscloud/login"){
                 message.warning("信息失效，请重新登陆")
             }
-            navigation("/login")
+            navigation("/tarsuscloud/login")
             return;
         }
 
         if(token && userInfo){
-            if (location.pathname === '/admin' || location.pathname === "/database") {
+            if (location.pathname === '/tarsuscloud/admin' || location.pathname === "/tarsuscloud/database") {
                 setPadd('0');
             } else {
                 setPadd('50px');
@@ -51,20 +50,20 @@ const RouterComponent = () => {
         <Layout className="layout">
             <Header>
                 <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']}>
-                    <Menu.Item key="1" icon={<CloudOutlined />}><Link to="/">TarsusCloud</Link></Menu.Item>
-                    <Menu.Item key="2" icon={<UserOutlined />}><Link to="/user">User</Link></Menu.Item>
-                    <Menu.Item key="3" icon={<AimOutlined />}> <Link to="/admin">Admin</Link></Menu.Item>
-                    <Menu.Item key="4" icon={<HomeOutlined />}> <Link to="/login">Login</Link></Menu.Item>
+                    <Menu.Item key="1" icon={<CloudOutlined />}><Link to="/tarsuscloud/home">TarsusCloud</Link></Menu.Item>
+                    <Menu.Item key="2" icon={<UserOutlined />}><Link to="/tarsuscloud/user">User</Link></Menu.Item>
+                    <Menu.Item key="3" icon={<AimOutlined />}> <Link to="/tarsuscloud/admin">Admin</Link></Menu.Item>
+                    <Menu.Item key="4" icon={<HomeOutlined />}> <Link to="/tarsuscloud/login">Login</Link></Menu.Item>
                 </Menu>
             </Header>
             <Content style={{ padding: padd }}>
                 <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/user" element={<UserDashboard userInfo={userInfo} />} />
-                    <Route path="/admin" element={<AdminDashBoard />} />
-                    <Route path="/login" element={<LoginForm />} />
-                    <Route path="/database" element={<DatabaseManager />} />
-                    <Route path="/logger" element={<LoggerViewer />} />
+                    <Route path="/tarsuscloud/home" element={<HomePage />} />
+                    <Route path="/tarsuscloud/user" element={<UserDashboard userInfo={userInfo} />} />
+                    <Route path="/tarsuscloud/admin" element={<AdminDashBoard />} />
+                    <Route path="/tarsuscloud/login" element={<LoginForm />} />
+                    <Route path="/tarsuscloud/database" element={<DatabaseManager />} />
+                    <Route path="/tarsuscloud/logger" element={<LoggerViewer />} />
                     {/* Add your Admin route here if needed */}
                 </Routes>
             </Content>
