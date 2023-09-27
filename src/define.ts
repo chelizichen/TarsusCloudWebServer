@@ -84,7 +84,9 @@ export type ApiConfig = {
     ApiType:ApiType;
     uid:string;
     targetUid:string;
-    type:ElementUIComponents.API
+    text:string;
+    type:ElementUIComponents.API;
+    url:string;
 } & Pick<FileConfig,"fileUid">
 
 enum ComponentStatus{
@@ -121,7 +123,7 @@ interface LowCodeMethods{
 
     GetViewList():Promise<Array<FileConfig>>;
 
-
+    DeleteComponent(fileUid,uid):void;
 }
 
 
@@ -245,6 +247,17 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
         this.request({
             url:'SetOption',
             data:config
+        })
+    }
+
+    DeleteComponent(fileUid, uid): void {
+        const data = {
+            fileUid,
+            uid
+        }
+        this.request({
+            url:'DeleteComponent',
+            data:data
         })
     }
 }
