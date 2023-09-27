@@ -25,6 +25,7 @@
     "react-json-view": "^1.21.3",
     "react-monaco-editor": "^0.54.0",
     "react-router-dom": "^6.15.0",
+    "uid": "^2.0.2",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
