@@ -74,7 +74,7 @@ export type ButtonConfig = {
 } & Pick<FileConfig,"fileUid">
 
 export enum ApiType{
-    ADD,
+    LINK,
     DELETE,
     UPDATE,
     SEARCH,
@@ -195,8 +195,10 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
         })
         return ret
     }
-    CreateApi(config: ApiConfig): void {
-        config.uid = this.getUid()
+    CreateApi(config: ApiConfig,isUpdate?:boolean): void {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
         this.request({
             url:'CreateApi',
             data:config

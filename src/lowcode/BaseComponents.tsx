@@ -30,12 +30,12 @@ export function ElButton(props: ElButtonProps) {
 
 type ApiProps = Partial<ApiConfig>
 
-export function ApiComponent({url}:ApiProps) {
+export function ApiComponent({url,text}:ApiProps) {
     return (
         <div style={{width:"200px"}}>
-            <Badge.Ribbon text="Http" style={{width:70}}>
-                <Card title="Request" size="small">
-                    body
+            <Badge.Ribbon text="HTTP" style={{width:70}}>
+                <Card title={url || "Request"} size="small">
+                    {text || 'body'}
                 </Card>
             </Badge.Ribbon>
         </div>

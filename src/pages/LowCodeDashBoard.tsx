@@ -108,9 +108,14 @@ function LowCodeDashBoard() {
             // todo 添加删除的API
         }
     };
-    const handleEditButtonComponent = (componentId) => {
+    const handleEditComponent = (componentId,type) => {
         setUid(componentId)
-        setButtonComponentOpen(true)
+        if(type == ElementUIComponents.BUTTON){
+            setButtonComponentOpen(true)
+        }
+        if(type == ElementUIComponents.API){
+            setApiComponentOpen(true)
+        }
     };
     const [isCreateFileOpen, SetIsCreateFileOpen] = useState(false)
 
@@ -160,7 +165,7 @@ function LowCodeDashBoard() {
                                 <Button
                                     type="link"
                                     icon={<EditOutlined/>}
-                                    onClick={() => handleEditButtonComponent(component.uid)}
+                                    onClick={() => handleEditComponent(component.uid,ElementUIComponents.BUTTON)}
                                     // 添加编辑组件的点击事件
                                 />
                             </div>
@@ -168,13 +173,13 @@ function LowCodeDashBoard() {
                     ))}
                     {ApiContainers.map((component) => (
                         <SpaceBetween key={component.uid}>
-                            <ApiComponent/>
+                            <ApiComponent url={component.url} text={component.text}/>
                             <div>
                                 <Divider type="vertical"/>
                                 <Button
                                     type="link"
                                     icon={<EditOutlined/>}
-                                    onClick={() => handleEditButtonComponent(component.uid)}
+                                    onClick={() => handleEditComponent(component.uid,ElementUIComponents.API)}
                                     // 添加编辑组件的点击事件
                                 />
                             </div>
