@@ -8,7 +8,8 @@ export enum ElementUIComponents{
     SELECT,
     OPTIONS,
     PAGINATION,
-    API
+    API,
+    BUTTON
 }
 
 type FileConfig = {
@@ -66,24 +67,25 @@ export enum ButtonType{
 export type ButtonConfig = {
     click:string;
     uid:string;
-    type:ButtonType;
+    btnType:ButtonType;
     apiUid:string;
     text:string;
-} & FileConfig
+    type:ElementUIComponents.BUTTON
+} & Pick<FileConfig,"fileUid">
 
-enum ApiType{
+export enum ApiType{
     ADD,
     DELETE,
     UPDATE,
     SEARCH,
 }
 
-type ApiConfig={
+export type ApiConfig = {
     ApiType:ApiType;
     uid:string;
     targetUid:string;
     type:ElementUIComponents.API
-} & FileConfig
+} & Pick<FileConfig,"fileUid">
 
 enum ComponentStatus{
     Undefined,
@@ -103,7 +105,7 @@ interface LowCodeMethods{
     // 设置表格
     CreateTable(config:TableConfig):void;
 
-    CreateButton(config:ButtonConfig):void;
+    CreateButton(config:ButtonConfig):ButtonConfig;
 
     // 设置表格对应的Formatter、Link、Button
     SetTargetColumn(config:ColumnDetailConfig):void;
@@ -127,7 +129,7 @@ class BaseComponent{
     private AxiosInst:AxiosInstance
     constructor(){
         this.AxiosInst = axios.create({    
-            baseURL: '/primary/lowcode/', // api的base_url
+            baseURL: '/primary/main/lowcode/', // api的base_url
             timeout: 15000, // 请求超时时间})
             method:'post'
         })
@@ -154,17 +156,26 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
 
     public FileConfig:FileConfig;
 
-    constructor(fileName:string){
+    constructor(fileName:string,config:{
+        isNew:boolean;
+        fileUid:string;
+    }){
         super();
         this.FileConfig = {} as FileConfig
-        this.CreateView(fileName)
+        if(config.isNew){
+            this.CreateView(fileName)
+        }else{
+            this.FileConfig.fileName = fileName;
+            this.FileConfig.fileUid = config.fileUid;
+        }
     }
-    CreateButton(config: ButtonConfig): void {
+    CreateButton(config: ButtonConfig): ButtonConfig {
         config.uid = this.getUid()
         this.request({
             url:'CreateButton',
             data:config
         })
+        return config
     }
     async GetViewList(): Promise<FileConfig[]> {
         const ret = await this.request({
@@ -177,7 +188,7 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
             uid
         }
         const ret = await this.request({
-            url:'CreateView',
+            url:'GetView',
             data
         })
         return ret
@@ -185,7 +196,7 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
     CreateApi(config: ApiConfig): void {
         config.uid = this.getUid()
         this.request({
-            url:'CreateTable',
+            url:'CreateApi',
             data:config
         })
     }

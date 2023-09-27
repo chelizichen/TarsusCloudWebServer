@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Badge, Button, Card } from "antd";
 import { useCallback, useState } from "react";
 import { ButtonType } from "../define";
 
@@ -22,5 +22,15 @@ export function ElButton(props:ElButtonProps){
     },[type])
     return (
         <Button type={getButtonType()}>{text || "按钮"}</Button>
+    )
+}
+
+export function ApiComponent(){
+    return(
+        <Badge.Ribbon text="Http">
+        <Card title="Request" size="small">
+          body
+        </Card>
+      </Badge.Ribbon>
     )
 }

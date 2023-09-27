@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {Layout, Menu, Card, Carousel, message} from 'antd';
-import {HomeOutlined, UserOutlined, AimOutlined, CloudOutlined, DashOutlined, PlaySquareOutlined} from '@ant-design/icons';
+import {HomeOutlined, UserOutlined, AimOutlined, CloudOutlined, DashOutlined, PlaySquareOutlined, BoxPlotTwoTone} from '@ant-design/icons';
 import {Routes, Route, Link, useLocation, useNavigate} from 'react-router-dom';
 import UserDashboard from '../pages/UserDashBoard';
 import HomePage from '../pages/HomePage';
@@ -56,7 +56,7 @@ const RouterComponent = () => {
                     <Menu.Item key="2" icon={<UserOutlined />}><Link to="/tarsuscloud/user">User</Link></Menu.Item>
                     <Menu.Item key="3" icon={<AimOutlined />}> <Link to="/tarsuscloud/admin">Admin</Link></Menu.Item>
                     <Menu.Item key="4" icon={<HomeOutlined />}> <Link to="/tarsuscloud/login">Login</Link></Menu.Item>
-                    <Menu.Item key="5" icon={<PlaySquareOutlined />}> <Link to="/tarsuscloud/lowcode">LowCode</Link></Menu.Item>
+                    <Menu.Item key="5" icon={<BoxPlotTwoTone />}> <Link to="/tarsuscloud/lowcode">LowCode</Link></Menu.Item>
                 </Menu>
             </Header>
             <Content style={{ padding: padd }}>
