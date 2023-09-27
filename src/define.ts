@@ -1,6 +1,7 @@
 // define some lowcode component types
 import  axios,{ AxiosInstance, AxiosRequestConfig} from 'axios';
 import {uid} from 'uid';
+import useStore from "./store";
 
 export enum ElementUIComponents{
     TABLE,
@@ -31,9 +32,9 @@ type TableConfig = {
         isAlignCenter:boolean;
         isBorder:boolean;
         columnUid:string;
-        modelData:string;//will create vmodel
         type:ElementUIComponents.TABLE;
     }>;
+    modelData:string;//will create vmodel
     uid:string;
 } & FileConfig;
 
@@ -54,6 +55,20 @@ type OptionConfig = {
     NameOfValue:string;
     type:ElementUIComponents.OPTIONS
     uid:string;
+} & FileConfig
+
+export enum ButtonType{
+    Main,
+    Common,
+    Text
+}
+
+export type ButtonConfig = {
+    click:string;
+    uid:string;
+    type:ButtonType;
+    apiUid:string;
+    text:string;
 } & FileConfig
 
 enum ApiType{
@@ -88,6 +103,8 @@ interface LowCodeMethods{
     // 设置表格
     CreateTable(config:TableConfig):void;
 
+    CreateButton(config:ButtonConfig):void;
+
     // 设置表格对应的Formatter、Link、Button
     SetTargetColumn(config:ColumnDetailConfig):void;
 
@@ -99,6 +116,10 @@ interface LowCodeMethods{
     CreateApi(config:ApiConfig):void;
 
     GetView(uid:string):Promise<unknown>;
+
+    GetViewList():Promise<Array<FileConfig>>;
+
+
 }
 
 
@@ -106,12 +127,13 @@ class BaseComponent{
     private AxiosInst:AxiosInstance
     constructor(){
         this.AxiosInst = axios.create({    
-            baseURL: '/proxy/LowCodeServer/', // api的base_url
+            baseURL: '/primary/lowcode/', // api的base_url
             timeout: 15000, // 请求超时时间})
             method:'post'
         })
         this.AxiosInst.interceptors.request.use(function(config){
-            config.headers.set("X-Target-Port",10022);
+            const state = useStore.getState() as Record<string,string>
+            config.headers.set("X-Target-Port",state.invokePort)
             return config;
         })
         this.AxiosInst.interceptors.response.use(response => {
@@ -130,9 +152,25 @@ class BaseComponent{
 
 export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
 
+    public FileConfig:FileConfig;
+
     constructor(fileName:string){
         super();
+        this.FileConfig = {} as FileConfig
         this.CreateView(fileName)
+    }
+    CreateButton(config: ButtonConfig): void {
+        config.uid = this.getUid()
+        this.request({
+            url:'CreateButton',
+            data:config
+        })
+    }
+    async GetViewList(): Promise<FileConfig[]> {
+        const ret = await this.request({
+            url:'GetViewList',
+        }) as unknown as Record<string,any>
+        return ret.data as FileConfig[]
     }
     async GetView(uid: string): Promise<unknown> {
         const data = {
@@ -156,6 +194,7 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
             fileName,
             fileUid:this.getUid()
         }
+        this.FileConfig = data;
         this.request({
             url:'CreateView',
             data

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {Layout, Menu, Card, Carousel, message} from 'antd';
-import {HomeOutlined, UserOutlined, AimOutlined, CloudOutlined} from '@ant-design/icons';
+import {HomeOutlined, UserOutlined, AimOutlined, CloudOutlined, DashOutlined, PlaySquareOutlined} from '@ant-design/icons';
 import {Routes, Route, Link, useLocation, useNavigate} from 'react-router-dom';
 import UserDashboard from '../pages/UserDashBoard';
 import HomePage from '../pages/HomePage';
@@ -9,7 +9,9 @@ import LoginForm from "../pages/Login.tsx";
 import useStore from '../store';
 import DatabaseManager from '../pages/DBManager.tsx';
 import LoggerViewer from "../pages/LoggerViewer.tsx";
-
+import LowCodeDashboard from '../pages/LowCodeDashBoard.tsx';
+import { DndProvider } from 'react-dnd';
+import {HTML5Backend} from 'react-dnd-html5-backend';
 const { Header, Content, Footer } = Layout;
 
 const RouterComponent = () => {
@@ -54,6 +56,7 @@ const RouterComponent = () => {
                     <Menu.Item key="2" icon={<UserOutlined />}><Link to="/tarsuscloud/user">User</Link></Menu.Item>
                     <Menu.Item key="3" icon={<AimOutlined />}> <Link to="/tarsuscloud/admin">Admin</Link></Menu.Item>
                     <Menu.Item key="4" icon={<HomeOutlined />}> <Link to="/tarsuscloud/login">Login</Link></Menu.Item>
+                    <Menu.Item key="5" icon={<PlaySquareOutlined />}> <Link to="/tarsuscloud/lowcode">LowCode</Link></Menu.Item>
                 </Menu>
             </Header>
             <Content style={{ padding: padd }}>
@@ -64,6 +67,11 @@ const RouterComponent = () => {
                     <Route path="/tarsuscloud/login" element={<LoginForm />} />
                     <Route path="/tarsuscloud/database" element={<DatabaseManager />} />
                     <Route path="/tarsuscloud/logger" element={<LoggerViewer />} />
+                    <Route path="/tarsuscloud/lowcode" element={
+                      <DndProvider backend={HTML5Backend}>
+                          <LowCodeDashboard />
+                      </DndProvider>
+                    } />
                     {/* Add your Admin route here if needed */}
                 </Routes>
             </Content>
