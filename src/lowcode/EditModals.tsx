@@ -52,7 +52,7 @@ export function EditButtonModal(
 
     const handleEdit = () => {
         const mergeData = Object.assign(originData, form.getFieldsValue())
-        console.log(mergeData);
+        lowcodeComponent.CreateButton(mergeData,true)
     }
 
     const handleDelete = () => {

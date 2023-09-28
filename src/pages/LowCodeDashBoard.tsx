@@ -2,23 +2,32 @@ import React, {MutableRefObject, useEffect, useRef, useState} from 'react';
 import {Row, Col, Card, Button, Divider} from 'antd';
 import {useDrag, useDrop, XYCoord} from 'react-dnd';
 import {ApiComponent, ElButton} from '../lowcode/BaseComponents';
-import {ApiConfig, ApiType, ButtonConfig, ButtonType, ElementUIComponents, TarsusLowCode} from '../define';
+import {
+    ApiConfig,
+    ApiType,
+    ButtonConfig,
+    ButtonType,
+    ElementPosition,
+    ElementUIComponents,
+    TarsusLowCode
+} from '../define';
 import {DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import {EditApiModal, EditButtonModal} from '../lowcode/EditModals.tsx';
 import CreateFileComponent from '../lowcode/CreateFileComponent';
-import {GetView, GetViews} from '../api/lowcode';
+import {GetElement, GetView, GetViews} from '../api/lowcode';
 import SpaceBetween from "../components/SpaceBetween.tsx";
+import GetDifferenceComponent from "../lowcode/GetDifferenceComponent.tsx";
 
 
 const ComponentTypes = {
     DRAGGABLE: 'draggableComponent',
 };
 
-function isElementIn(clientOffset:XYCoord,elementRect){
+function isElementIn(clientOffset: XYCoord, elementRect) {
     return (clientOffset.x >= elementRect.left &&
-    clientOffset.x <= elementRect.right &&
-    clientOffset.y >= elementRect.top &&
-    clientOffset.y <= elementRect.bottom)
+        clientOffset.x <= elementRect.right &&
+        clientOffset.y >= elementRect.top &&
+        clientOffset.y <= elementRect.bottom)
 }
 
 const AvailableComponents = [
@@ -34,7 +43,7 @@ function DraggableComponent({component}) {
     });
 
     return (
-        <div ref={ref} style={{marginBottom: '10px',display:'inline-block'}}>
+        <div ref={ref} style={{marginBottom: '10px', display: 'inline-block'}}>
             {component.component}
         </div>
     );
@@ -57,6 +66,9 @@ function LowCodeDashBoard() {
     const [uid, setUid] = useState('')
     const [fileUid, setFileUid] = useState('')
 
+    const [TopContainers,SetTopContainers] = useState([])
+    const [TableContainers,SetTableContainers] = useState([])
+
     // 组件Containers
     const [ButtonContainers, SetButtonContainers] = useState([])
     const [ApiContainers, SetApiContainers] = useState([])
@@ -65,11 +77,19 @@ function LowCodeDashBoard() {
             return;
         }
         GetView(fileUid).then(res => {
-            const Buttons = res.data[ElementUIComponents.BUTTON]
+            const Buttons = res.data[ElementUIComponents.BUTTON] || []
             SetButtonContainers(Buttons)
-            const Apis = res.data[ElementUIComponents.API]
+            const Apis = res.data[ElementUIComponents.API] || []
             SetApiContainers(Apis)
         })
+
+        GetElement(fileUid,ElementPosition.Table).then(res=>{
+            SetTableContainers([...TableContainers,...res.data])
+        })
+        GetElement(fileUid,ElementPosition.Top).then(res=>{
+            SetTopContainers([...TopContainers,...res.data])
+        })
+
     }, [fileUid])
     // 创建后
     const [tarsusLowCode, SetTarsusLowCode] = useState<TarsusLowCode>({} as TarsusLowCode)
@@ -80,12 +100,12 @@ function LowCodeDashBoard() {
             if (!fileUid) {
                 return
             }
-            // todo 拖拽到指定的位置，然后我需要对他进行位置标注
-            const dropPosition = monitor.getClientOffset();
-            if (dropPosition) {
-                const {x, y} = dropPosition;
-                console.log(`拖拽到坐标：x=${x}, y=${y}`);
-            }
+            const dropPosition = monitor.getClientOffset() as XYCoord;
+            const topElementRect = TopElement.current!.getBoundingClientRect();
+            const tableElementRect = TableElement.current!.getBoundingClientRect();
+            const isElementInTop = isElementIn(dropPosition, topElementRect)
+            const isElementInTable = isElementIn(dropPosition, tableElementRect)
+            let ElementData = undefined;
             if (item.type === ElementUIComponents.BUTTON) {
                 const data: ButtonConfig = {
                     fileUid: fileUid,
@@ -96,8 +116,9 @@ function LowCodeDashBoard() {
                     btnType: ButtonType.Main,
                     type: ElementUIComponents.BUTTON
                 }
-                tarsusLowCode.CreateButton(data)
+                tarsusLowCode.CreateButton(data);
                 SetButtonContainers([...ButtonContainers, data])
+                ElementData = data;
             }
             if (item.type === ElementUIComponents.API) {
                 const data: ApiConfig = {
@@ -111,9 +132,20 @@ function LowCodeDashBoard() {
                 }
                 tarsusLowCode.CreateApi(data)
                 SetApiContainers([...ApiContainers, data])
+                ElementData = data;
             }
+
+            isElementInTop && tarsusLowCode.AddTopElement(fileUid,ElementData)
+            isElementInTable && tarsusLowCode.AddTableElement(fileUid,ElementData)
+            isElementInTop && SetTopContainers([...TopContainers,ElementData])
+            isElementInTable && SetTableContainers([...TableContainers,ElementData])
+            
+            TableElement.current!.style.background = 'unset'
+            TopElement.current!.style.background = 'unset'
+
             // 当组件被拖拽到中间区域时，将其添加到已添加组件列表中
         },
+        // hover 的过程中进行颜色判断
         hover: (item, monitor) => {
             // 获取拖拽的坐标信息
             const clientOffset = monitor.getClientOffset();
@@ -127,18 +159,18 @@ function LowCodeDashBoard() {
 
             // 判断拖拽项是否在 TopElement 区域内
             if (
-                isElementIn(clientOffset,topElementRect)
+                isElementIn(clientOffset, topElementRect)
             ) {
-                console.log('拖拽项在 TopElement 区域内');
-                // 在这里执行 TopElement 区域的操作
+                TopElement.current!.style.background = '#f8f8f8'
+                TableElement.current!.style.background = 'unset'
             }
 
             // 判断拖拽项是否在 TableElement 区域内
             if (
-                isElementIn(clientOffset,tableElementRect)
+                isElementIn(clientOffset, tableElementRect)
             ) {
-                console.log('拖拽项在 TableElement 区域内');
-                // 在这里执行 TableElement 区域的操作
+                TopElement.current!.style.background = 'unset'
+                TableElement.current!.style.background = '#f8f8f8'
             }
         },
     });
@@ -203,14 +235,18 @@ function LowCodeDashBoard() {
                         justifyContent: 'flex-start',
                         height: '100px',
                         width: '100%',
-                        borderBottom:'1px dashed gray'
+                        borderBottom: '1px dashed gray'
                     }} ref={TopElement}>
-
+                        {TopContainers.map(item=>(
+                            <GetDifferenceComponent {...item}></GetDifferenceComponent>
+                        ))}
                     </div>
 
                     {/*表格组件*/}
                     <div ref={TableElement} style={{height: '600px', width: '100%'}}>
-
+                        {TableContainers.map(item=>(
+                            <GetDifferenceComponent {...item}></GetDifferenceComponent>
+                        ))}
                     </div>
                 </Card>
             </Col>

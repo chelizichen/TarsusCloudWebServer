@@ -52,7 +52,7 @@ type SelectConfig = {
 } & FileConfig
 
 type OptionConfig = {
-    NameOflabel:string;
+    NameOfLabel:string;
     NameOfValue:string;
     type:ElementUIComponents.OPTIONS
     uid:string;
@@ -92,9 +92,21 @@ export type ApiConfig = {
 enum ComponentStatus{
     Undefined,
     Created,
-    Seted
+    Setted
 }
 
+export enum ElementPosition {
+    Top = "TopElement",
+    Table = "TableElement"
+}
+
+type ElementConfig = {
+    fileUid: string;
+    position: ElementPosition;
+    config: Record<string, any> & {
+        uid:string
+    }
+}
 
 
 interface LowCodeMethods{
@@ -124,6 +136,10 @@ interface LowCodeMethods{
     GetViewList():Promise<Array<FileConfig>>;
 
     DeleteComponent(fileUid,uid):void;
+
+    AddTopElement(fileUid:string,anyConfig:any):void;
+
+    AddTableElement(fileUid:string,anyConfig:any):void;
 }
 
 
@@ -171,8 +187,10 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
             this.FileConfig.fileUid = config.fileUid;
         }
     }
-    CreateButton(config: ButtonConfig): ButtonConfig {
-        config.uid = this.getUid()
+    CreateButton(config: ButtonConfig,isUpdate?:boolean): ButtonConfig {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
         this.request({
             url:'CreateButton',
             data:config
@@ -260,6 +278,30 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
         this.request({
             url:'DeleteComponent',
             data:data
+        })
+    }
+
+    AddTableElement(fileUid:string,anyConfig: any): void {
+        const data:ElementConfig = {
+            fileUid,
+            position:ElementPosition.Table,
+            config:anyConfig
+        }
+        this.request({
+            url:'AddElement',
+            data
+        })
+    }
+
+    AddTopElement(fileUid:string,anyConfig: any): void {
+        const data:ElementConfig = {
+            fileUid,
+            position:ElementPosition.Top,
+            config:anyConfig
+        }
+        this.request({
+            url:'AddElement',
+            data
         })
     }
 }

@@ -2,7 +2,7 @@ import {Badge, Button, Card} from "antd";
 import {useCallback, useState} from "react";
 import {ApiConfig, ButtonType} from "../define";
 
-type ElButtonProps = {
+export type ElButtonProps = {
     type: ButtonType;
     text: string;
 }
@@ -28,7 +28,7 @@ export function ElButton(props: ElButtonProps) {
     )
 }
 
-type ApiProps = Partial<ApiConfig>
+export type ApiProps = Partial<ApiConfig>
 
 export function ApiComponent({url,text}:ApiProps) {
     return (
