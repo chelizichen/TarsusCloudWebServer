@@ -17,14 +17,14 @@ type FileConfig = {
     fileUid:string
 }
 
-type PaginationConfig = {
+export type PaginationConfig = {
     NameOfOffset:string; // will create vmodel
     NameOfSize:string; // will create vmodel
-    QueryApi:string;
+    QueryApiUid:string;
     uid:string;
     targetTableUid:string;
     type:ElementUIComponents.PAGINATION
-} & FileConfig
+} & Pick<FileConfig, 'fileUid'>
 
 export type TableConfig = {
     data:Array<{
@@ -62,7 +62,8 @@ type OptionConfig = {
 export enum ButtonType{
     Main,
     Common,
-    Text
+    Text,
+    CREATE
 }
 
 export type ButtonConfig = {
@@ -237,8 +238,10 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
         })
         // Todo:创建Redis-Record
     }
-    CreatePagination(config: PaginationConfig): void {
-        config.uid = this.getUid()
+    CreatePagination(config: PaginationConfig,isUpdate?:boolean): void {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
         this.request({
             url:'CreatePagination',
             data:config

@@ -1,7 +1,7 @@
-import {ApiComponent, ApiProps, ElButton, ElButtonProps, ElTable} from "./BaseComponents.tsx";
-import {ElementUIComponents} from "../define.ts";
+import {ApiComponent, ApiProps, ElButton, ElPagination, ElTable} from "./BaseComponents.tsx";
+import {ButtonConfig, ElementUIComponents} from "../define.ts";
 
-type differenceComponentProps = Partial<ElButtonProps & ApiProps & {isOperate:boolean}>
+type differenceComponentProps = Partial<ButtonConfig & ApiProps & {isOperate:boolean}>
 export default function GetDifferenceComponent(props:differenceComponentProps){
     const {type,...restProps} = props
     if(type === ElementUIComponents.API){
@@ -15,10 +15,16 @@ export default function GetDifferenceComponent(props:differenceComponentProps){
         )
     }
     if(type === ElementUIComponents.TABLE){
-        console.log('ElTable|restProps',restProps)
         restProps.isOperate = true
         return (
             <ElTable {...restProps}></ElTable>
+        )
+    }
+    if(type === ElementUIComponents.PAGINATION){
+        restProps.isOperate = true
+        console.log('PAGINATION',props)
+        return (
+            <ElPagination {...restProps}></ElPagination>
         )
     }
 }

@@ -1,11 +1,12 @@
-import {Badge, Button, Card, Table} from "antd";
-import {useCallback, useEffect, useState} from "react";
-import {ApiConfig, ButtonConfig, ButtonType, TableConfig} from "../define";
+import {Badge, Button, Card, Pagination, Table} from "antd";
+import {useEffect, useState} from "react";
+import {ApiConfig, ButtonConfig, ButtonType, PaginationConfig, TableConfig} from "../define";
 import {ColumnsType} from "antd/es/table";
 
 
 export function ElButton(props: ButtonConfig) {
     const {btnType, text} = props;
+    const style:React.CSSProperties = {};
     const getButtonType = () => {
         if (btnType == ButtonType.Main) {
             return 'primary'
@@ -16,11 +17,15 @@ export function ElButton(props: ButtonConfig) {
         if (btnType == ButtonType.Common) {
             return 'default'
         }
+        if(btnType == ButtonType.CREATE){
+            style.background = 'green'
+            style.color = 'white'
+        }
         return "primary"
     }
     return (
         <div style={{margin: "0 5px"}}>
-            <Button type={getButtonType()}>{text || "Button"}</Button>
+            <Button style={style} type={getButtonType()}>{text || "Button"}</Button>
         </div>
     )
 }
@@ -39,21 +44,21 @@ export function ApiComponent({url, text}: ApiProps) {
     )
 }
 
-export function ElTable({uid,data,isOperate}: TableConfig) {
+export function ElTable({uid,data,isOperate,isAlignCenter}: TableConfig) {
     const [columns,SetColumns] = useState([])
     const [sourceData,SetSourceData] = useState([])
 
     const [width,setWidth] = useState('')
     useEffect(() => {
         if(isOperate){
-           setWidth("80%")
+           setWidth("100%")
         }else {
             setWidth("200px")
         }
     }, []);
     useEffect(() => {
         if(data instanceof Array && data.length){
-            SetColumns(data.map(item=>({title:item.columnName,dataIndex:item.filedName})))
+            SetColumns(data.map(item=>({title:item.columnName,dataIndex:item.filedName,align:isAlignCenter?'center':''})))
             const keys = data.map(item=>item.filedName)
             const testData = {}
             for(let v in keys){
@@ -97,6 +102,28 @@ export function ElTable({uid,data,isOperate}: TableConfig) {
     return (
         <div style={{width:width}}>
             <Table columns={columns} dataSource={sourceData} size="middle" pagination={false} scroll={{ x: 'max-content' }} />
+        </div>
+    )
+}
+
+export function ElPagination({isOperate,url}:PaginationConfig){
+    const [style,setStyle]:React.CSSProperties = useState()
+    useEffect(()=>{
+        const obj:React.CSSProperties = {}
+        if(isOperate){
+            obj.float = 'right';
+            obj.margin = '20px';
+            obj.width = '300px';
+        }else {
+            obj.width = '200px';
+        }
+        setStyle(obj)
+    },[isOperate])
+    return(
+        <div style={{...style}}>
+            <Badge count={url || 'api'}>
+                <Pagination defaultCurrent={1} total={50} pageSize={10} size="small" />
+            </Badge>
         </div>
     )
 }

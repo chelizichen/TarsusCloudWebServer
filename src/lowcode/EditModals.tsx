@@ -1,9 +1,8 @@
 import {Button, Form, Input, Modal, Select, Switch, Radio} from 'antd';
 import React, {useEffect, useState} from 'react';
 import {ApiType, ButtonType, ElementUIComponents, TableConfig, TarsusLowCode} from '../define';
-import {ApiComponent} from "./BaseComponents.tsx";
+import {ApiComponent, ElTable} from "./BaseComponents.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
-import {useForm} from "antd/es/form/Form";
 
 type Props = {
     uid: string;
@@ -74,6 +73,7 @@ export function EditButtonModal(
         >
             <Form form={form} onFinish={handleFinish}>
                 <Form.Item
+                    label={"文字"}
                     name="text"
                     rules={[{required: true, message: 'Please input button text!'}]}
                 >
@@ -82,6 +82,7 @@ export function EditButtonModal(
 
                 <Form.Item
                     name="btnType"
+                    label={"按钮类型"}
                     rules={[{required: true, message: 'Please input button text!'}]}
                 >
                     <Select>
@@ -91,17 +92,21 @@ export function EditButtonModal(
                             type={'primary'}>主按钮</Button></Select.Option>
                         <Select.Option key={3} value={ButtonType.Text}><Button
                             type={'text'}>文本按钮</Button></Select.Option>
+                        <Select.Option key={4} value={ButtonType.CREATE}><Button
+                            style={{background:'green',color:'white'}}
+                           >新建按钮</Button></Select.Option>
                     </Select>
                 </Form.Item>
 
                 <Form.Item
+                    label={"绑定接口"}
                     name="apiUid"
                     rules={[{required: false, message: 'Please input button text!'}]}
                 >
                     <Select>
                         {ApiData.map(item => (
                             <Select.Option value={item.uid} key={item.uid}>
-                                <ApiComponent/>
+                                <ApiComponent {...item}/>
                             </Select.Option>
                         ))}
                     </Select>
@@ -190,6 +195,7 @@ export function EditApiModal(
             <Form form={form} onFinish={handleFinish}>
                 <Form.Item
                     name="text"
+                    label={"接口文字"}
                     rules={[{required: true, message: 'Please input button text!'}]}
                 >
                     <Input placeholder="text"/>
@@ -197,6 +203,7 @@ export function EditApiModal(
 
                 <Form.Item
                     name="ApiType"
+                    label={"接口类型"}
                     rules={[{required: true, message: 'Please input button text!'}]}
                 >
                     <Select>
@@ -212,6 +219,7 @@ export function EditApiModal(
                 </Form.Item>
                 <Form.Item
                     name="url"
+                    label={"接口URI"}
                     rules={[{required: false, message: 'Please input api uri!'}]}
                 >
                     <Input placeholder="Please input api uri!"/>
@@ -458,6 +466,126 @@ export function EditTableColumnModal(props: EditTableColumnProps) {
                         </Select>
                     </Form.Item>
                 )}
+            </Form>
+        </Modal>
+    );
+}
+
+
+type ElPaginationProps = {
+    uid: string;
+    lowcodeComponent: TarsusLowCode;
+    isPaginationComponentOpen: boolean;
+    SetPaginationComponentOpen: (bool: boolean) => void;
+    removeComponent: (...args: any[]) => void;
+    ApiData: any[];
+    TableData:any[];
+    callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
+}
+
+export function ElPaginationModal(
+    {
+        uid,
+        lowcodeComponent,
+        isPaginationComponentOpen,
+        SetPaginationComponentOpen,
+        removeComponent,
+        ApiData,
+        callBackEditFunc,
+        TableData
+    }: ElPaginationProps) {
+    const [form] = Form.useForm();
+    const [originData, setOriginData] = useState({})
+    useEffect(() => {
+        console.log('ApiData', ApiData)
+        console.log('TableData', TableData)
+    }, [ApiData,TableData]);
+    // 每次uid改变的时候都需要去获取不同的组件数据
+    useEffect(() => {
+        if (!lowcodeComponent?.FileConfig?.fileUid) {
+            return;
+        }
+        const data = {
+            uid,
+            fileUid: lowcodeComponent.FileConfig.fileUid
+        }
+        lowcodeComponent.request({
+            url: 'GetComponent',
+            data
+        }).then(res => {
+            console.log('ElPaginationModal', res);
+            form.setFieldsValue(res.data)
+            setOriginData(res.data)
+        })
+    }, [uid])
+
+    const handleFinish = () => {
+        SetPaginationComponentOpen(false)
+        form.resetFields();
+    }
+
+    const handleEdit = () => {
+        const mergeData = Object.assign(originData, form.getFieldsValue())
+        lowcodeComponent.CreatePagination(mergeData, true)
+        callBackEditFunc(mergeData, ElementUIComponents.PAGINATION)
+    }
+
+    const handleDelete = () => {
+        const fileUid = lowcodeComponent.FileConfig.fileUid
+        lowcodeComponent.DeleteComponent(fileUid, uid)
+        removeComponent(uid, ElementUIComponents.PAGINATION)
+    }
+    return (
+        <Modal
+            title={`Edit Pagination Component `}
+            open={isPaginationComponentOpen}
+            onCancel={() => SetPaginationComponentOpen(false)}
+            footer={null}
+        >
+            <Form form={form} onFinish={handleFinish}>
+                <Form.Item label="Offset 名称" name="NameOfOffset" >
+                    <Input />
+                </Form.Item>
+                <Form.Item label="Size 名称" name="NameOfSize" >
+                    <Input />
+                </Form.Item>
+
+                <Form.Item
+                    name="QueryApiUid"
+                    rules={[{required: false, message: 'Please input button text!'}]}
+                    label="选择请求"
+                >
+                    <Select bordered={false}>
+                        {ApiData.map(item => (
+                            <Select.Option value={item.uid} key={item.uid}>
+                                <ApiComponent {...item}/>
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+                <Form.Item
+                    name="targetTableUid"
+                    rules={[{required: false, message: 'Please input button text!'}]}
+                    label="选择表格"
+                >
+                    <Select bordered={false}>
+                        {TableData.map(item => (
+                            <Select.Option value={item.uid} key={item.uid}>
+                                <ElTable {...item}/>
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" onClick={handleEdit}>
+                        EDIT
+                    </Button>
+                    <Button style={{color: "red", marginLeft: "20px"}} htmlType="submit" onClick={handleDelete}>
+                        DELETE
+                    </Button>
+                </Form.Item>
             </Form>
         </Modal>
     );
