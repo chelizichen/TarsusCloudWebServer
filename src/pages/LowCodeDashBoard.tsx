@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {MutableRefObject, useEffect, useRef, useState} from 'react';
 import {Row, Col, Card, Button, Divider} from 'antd';
-import {useDrag, useDrop} from 'react-dnd';
+import {useDrag, useDrop, XYCoord} from 'react-dnd';
 import {ApiComponent, ElButton} from '../lowcode/BaseComponents';
 import {ApiConfig, ApiType, ButtonConfig, ButtonType, ElementUIComponents, TarsusLowCode} from '../define';
 import {DeleteOutlined, EditOutlined} from '@ant-design/icons';
@@ -14,6 +14,12 @@ const ComponentTypes = {
     DRAGGABLE: 'draggableComponent',
 };
 
+function isElementIn(clientOffset:XYCoord,elementRect){
+    return (clientOffset.x >= elementRect.left &&
+    clientOffset.x <= elementRect.right &&
+    clientOffset.y >= elementRect.top &&
+    clientOffset.y <= elementRect.bottom)
+}
 
 const AvailableComponents = [
     {name: '按钮', type: ElementUIComponents.BUTTON, component: <ElButton type={ButtonType.Common} text={'按钮'}/>},
@@ -28,13 +34,17 @@ function DraggableComponent({component}) {
     });
 
     return (
-        <div ref={ref} style={{marginBottom: '10px'}}>
+        <div ref={ref} style={{marginBottom: '10px',display:'inline-block'}}>
             {component.component}
         </div>
     );
 }
 
 function LowCodeDashBoard() {
+
+    const TopElement: React.MutableRefObject<HTMLDivElement | undefined> = useRef<HTMLDivElement>();
+    const TableElement: React.MutableRefObject<HTMLDivElement | undefined> = useRef<HTMLDivElement>();
+
     const [AllFiles, SetAllFiles] = useState([])
     useEffect(() => {
         GetViews().then(res => {
@@ -66,9 +76,15 @@ function LowCodeDashBoard() {
     const [, drop] = useDrop({
         accept: ComponentTypes.DRAGGABLE,
         // 默认拖过来先
-        drop: (item) => {
+        drop: (item, monitor) => {
             if (!fileUid) {
                 return
+            }
+            // todo 拖拽到指定的位置，然后我需要对他进行位置标注
+            const dropPosition = monitor.getClientOffset();
+            if (dropPosition) {
+                const {x, y} = dropPosition;
+                console.log(`拖拽到坐标：x=${x}, y=${y}`);
             }
             if (item.type === ElementUIComponents.BUTTON) {
                 const data: ButtonConfig = {
@@ -98,6 +114,33 @@ function LowCodeDashBoard() {
             }
             // 当组件被拖拽到中间区域时，将其添加到已添加组件列表中
         },
+        hover: (item, monitor) => {
+            // 获取拖拽的坐标信息
+            const clientOffset = monitor.getClientOffset();
+            if (!clientOffset) {
+                return;
+            }
+
+            // 获取 TopElement 和 TableElement 的位置和尺寸信息
+            const topElementRect = TopElement.current!.getBoundingClientRect();
+            const tableElementRect = TableElement.current!.getBoundingClientRect();
+
+            // 判断拖拽项是否在 TopElement 区域内
+            if (
+                isElementIn(clientOffset,topElementRect)
+            ) {
+                console.log('拖拽项在 TopElement 区域内');
+                // 在这里执行 TopElement 区域的操作
+            }
+
+            // 判断拖拽项是否在 TableElement 区域内
+            if (
+                isElementIn(clientOffset,tableElementRect)
+            ) {
+                console.log('拖拽项在 TableElement 区域内');
+                // 在这里执行 TableElement 区域的操作
+            }
+        },
     });
 
     const removeComponent = (componentId: string, type: ElementUIComponents) => {
@@ -108,12 +151,12 @@ function LowCodeDashBoard() {
             // todo 添加删除的API
         }
     };
-    const handleEditComponent = (componentId,type) => {
+    const handleEditComponent = (componentId, type) => {
         setUid(componentId)
-        if(type == ElementUIComponents.BUTTON){
+        if (type == ElementUIComponents.BUTTON) {
             setButtonComponentOpen(true)
         }
-        if(type == ElementUIComponents.API){
+        if (type == ElementUIComponents.API) {
             setApiComponentOpen(true)
         }
     };
@@ -148,11 +191,27 @@ function LowCodeDashBoard() {
             <Col span={15}>
                 <Card
                     title={<div>操作界面 - "{fileUid}"</div>}
-                    style={{minHeight: '300px'}}
+                    style={{minHeight: '800px'}}
                     bodyStyle={{border: '1px dashed #ccc'}}
                     ref={drop}
                     extra={<Button onClick={() => SetIsCreateFileOpen(true)} type={'link'}>创建组件</Button>}
                 >
+                    {/*顶部 包含按钮等*/}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        height: '100px',
+                        width: '100%',
+                        borderBottom:'1px dashed gray'
+                    }} ref={TopElement}>
+
+                    </div>
+
+                    {/*表格组件*/}
+                    <div ref={TableElement} style={{height: '600px', width: '100%'}}>
+
+                    </div>
                 </Card>
             </Col>
             <Col span={5}>
@@ -165,7 +224,7 @@ function LowCodeDashBoard() {
                                 <Button
                                     type="link"
                                     icon={<EditOutlined/>}
-                                    onClick={() => handleEditComponent(component.uid,ElementUIComponents.BUTTON)}
+                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.BUTTON)}
                                     // 添加编辑组件的点击事件
                                 />
                             </div>
@@ -179,7 +238,7 @@ function LowCodeDashBoard() {
                                 <Button
                                     type="link"
                                     icon={<EditOutlined/>}
-                                    onClick={() => handleEditComponent(component.uid,ElementUIComponents.API)}
+                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.API)}
                                     // 添加编辑组件的点击事件
                                 />
                             </div>
