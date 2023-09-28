@@ -1,8 +1,9 @@
-import {Button, Form, Input, Modal, Select, Switch, List} from 'antd';
+import {Button, Form, Input, Modal, Select, Switch, Radio} from 'antd';
 import React, {useEffect, useState} from 'react';
-import {ApiType, ButtonType, ElementUIComponents, TarsusLowCode} from '../define';
+import {ApiType, ButtonType, ElementUIComponents, TableConfig, TarsusLowCode} from '../define';
 import {ApiComponent} from "./BaseComponents.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
+import {useForm} from "antd/es/form/Form";
 
 type Props = {
     uid: string;
@@ -85,11 +86,11 @@ export function EditButtonModal(
                 >
                     <Select>
                         <Select.Option key={1} value={ButtonType.Common}><Button
-                            type={'default'}>"普通按钮"</Button></Select.Option>
+                            type={'default'}>普通按钮</Button></Select.Option>
                         <Select.Option key={2} value={ButtonType.Main}><Button
-                            type={'primary'}>"主按钮"</Button></Select.Option>
+                            type={'primary'}>主按钮</Button></Select.Option>
                         <Select.Option key={3} value={ButtonType.Text}><Button
-                            type={'text'}>"文本按钮"</Button></Select.Option>
+                            type={'text'}>文本按钮</Button></Select.Option>
                     </Select>
                 </Form.Item>
 
@@ -251,6 +252,8 @@ export function EditTableModal(
     }: EditTableProps) {
     const [form] = Form.useForm();
     const [originData, setOriginData] = useState({})
+    const [isColumnEditOpen, SetEditColumnOpen] = useState(false)
+    const [currColumn, SetCurrColumn] = useState()
     useEffect(() => {
     }, [ApiData]);
     // 每次uid改变的时候都需要去获取不同的组件数据
@@ -289,13 +292,21 @@ export function EditTableModal(
         removeComponent(uid, ElementUIComponents.TABLE)
     }
 
+    const handleSetEditColumnOpen = (name) => {
+        const item = form.getFieldValue('data')[name]
+        SetEditColumnOpen(true)
+        SetCurrColumn(item);
+        console.log(item)
+    }
+
+
     return (
         <Modal
             title={`Edit Table Component `}
             open={isTableComponentOpen}
             onCancel={() => setTableComponentOpen(false)}
             footer={null}
-            width={600}
+            width={1000}
         >
             <Form form={form} onFinish={handleFinish}>
                 <Form.List name="data">
@@ -318,10 +329,16 @@ export function EditTableModal(
                                     ><Input placeholder="字段名"/>
                                     </Form.Item>
                                     <Button
+                                        onClick={() => handleSetEditColumnOpen(name)}
+                                        type={"primary"}
+                                    >高级
+                                    </Button>
+                                    <Button
                                         onClick={() => {
                                             remove(name);
                                         }}
                                         type={"primary"}
+                                        style={{background: 'red'}}
                                     >删除
                                     </Button>
                                 </SpaceBetween>
@@ -365,6 +382,82 @@ export function EditTableModal(
                         DELETE
                     </Button>
                 </Form.Item>
+            </Form>
+            <EditTableColumnModal {...currColumn} isEditColumnOpen={isColumnEditOpen}
+                                  setEditColumnOpen={SetEditColumnOpen}></EditTableColumnModal>
+        </Modal>
+    );
+}
+
+
+type EditTableColumnProps = TableConfig['data'][0] & {
+    isEditColumnOpen: boolean;
+    setEditColumnOpen(val: boolean): void;
+} & {
+    // todo 补充对应的特殊列的类型
+}
+
+export function EditTableColumnModal(props: EditTableColumnProps) {
+    const {columnName, filedName, columnUid, isEditColumnOpen, setEditColumnOpen} = props;
+    const [form] = Form.useForm();
+    const [specialColumnType, setSpecialColumnType] = useState<string | null>(null);
+    const [formatOption, setFormatOption] = useState<string | null>(null);
+
+    const handleOk = () => {
+        form.validateFields().then((values) => {
+            // 处理确认按钮点击事件，保存数据等操作
+            console.log(values);
+            setEditColumnOpen(false); // 关闭 Modal
+        });
+    };
+
+    const handleCancel = () => {
+        setEditColumnOpen(false); // 关闭 Modal
+    };
+
+
+    return (
+        <Modal
+            title={`编辑列-${columnName}`}
+            visible={isEditColumnOpen}
+            onOk={handleOk}
+            onCancel={handleCancel}
+        >
+            <Form form={form} labelCol={{span: 6}} wrapperCol={{span: 16}}>
+                <Form.Item label="列名" name="columnName" initialValue={columnName}>
+                    <Input disabled/>
+                </Form.Item>
+                <Form.Item label="字段名" name="filedName" initialValue={filedName}>
+                    <Input disabled/>
+                </Form.Item>
+                <Form.Item label="特殊列选项">
+                    <Radio.Group
+                        value={specialColumnType}
+                        onChange={(e) => setSpecialColumnType(e.target.value)}
+                    >
+                        <Radio.Button value="format">格式化选项</Radio.Button>
+                        <Radio.Button value="button">按钮类型</Radio.Button>
+                    </Radio.Group>
+                </Form.Item>
+                {specialColumnType === 'format' && (
+                    <Form.Item label="格式化选项" name="formatOption">
+                        <Select
+                            value={formatOption}
+                            onChange={(value) => setFormatOption(value)}
+                        >
+                            <Select.Option value="date">日期格式化</Select.Option>
+                            <Select.Option value="percentage">百分比格式化</Select.Option>
+                        </Select>
+                    </Form.Item>
+                )}
+                {specialColumnType === 'button' && (
+                    <Form.Item label="按钮类型" name="buttonType">
+                        <Select>
+                            <Select.Option value="primary">Primary</Select.Option>
+                            <Select.Option value="secondary">Secondary</Select.Option>
+                        </Select>
+                    </Form.Item>
+                )}
             </Form>
         </Modal>
     );

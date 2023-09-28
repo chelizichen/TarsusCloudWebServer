@@ -349,14 +349,14 @@ function LowCodeDashBoard() {
                         width: '100%',
                         borderBottom: '1px dashed gray'
                     }} ref={TopElement}>
-                        {TopContainers.map(item => (
+                        {TopContainers.filter(item=>item.type != ElementUIComponents.API).map(item => (
                             <GetDifferenceComponent {...item}></GetDifferenceComponent>
                         ))}
                     </div>
 
                     {/*表格组件*/}
                     <div ref={TableElement} style={{height: '600px', width: '100%'}}>
-                        {TableContainers.map(item => (
+                        {TableContainers.filter(item=>item.type != ElementUIComponents.API).map(item => (
                             <GetDifferenceComponent {...item}></GetDifferenceComponent>
                         ))}
                     </div>

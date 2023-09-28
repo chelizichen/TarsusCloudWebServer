@@ -1,5 +1,5 @@
 import {Badge, Button, Card, Table} from "antd";
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {ApiConfig, ButtonConfig, ButtonType, TableConfig} from "../define";
 import {ColumnsType} from "antd/es/table";
 
@@ -39,8 +39,33 @@ export function ApiComponent({url, text}: ApiProps) {
     )
 }
 
-export function ElTable({uid}: TableConfig) {
-    const columns: ColumnsType<any> = [
+export function ElTable({uid,data,isOperate}: TableConfig) {
+    const [columns,SetColumns] = useState([])
+    const [sourceData,SetSourceData] = useState([])
+
+    const [width,setWidth] = useState('')
+    useEffect(() => {
+        if(isOperate){
+           setWidth("80%")
+        }else {
+            setWidth("200px")
+        }
+    }, []);
+    useEffect(() => {
+        if(data instanceof Array && data.length){
+            SetColumns(data.map(item=>({title:item.columnName,dataIndex:item.filedName})))
+            const keys = data.map(item=>item.filedName)
+            const testData = {}
+            for(let v in keys){
+                testData[keys[v]] = keys[v]
+            }
+            SetSourceData([testData])
+        }else {
+            SetColumns(demoColumns)
+            SetSourceData(demoSourceData)
+        }
+    }, [data]);
+    const demoColumns: ColumnsType<any> = [
         {
             title: 'Name',
             dataIndex: 'name',
@@ -55,7 +80,7 @@ export function ElTable({uid}: TableConfig) {
         },
     ];
 
-    const data = [
+    const demoSourceData = [
         {
             key: '1',
             name: 'John Brown',
@@ -70,8 +95,8 @@ export function ElTable({uid}: TableConfig) {
         },
     ];
     return (
-        <div style={{width: "200px"}}>
-            <Table columns={columns} dataSource={data} size="middle" pagination={false} />
+        <div style={{width:width}}>
+            <Table columns={columns} dataSource={sourceData} size="middle" pagination={false} scroll={{ x: 'max-content' }} />
         </div>
     )
 }
