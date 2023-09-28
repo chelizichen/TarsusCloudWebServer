@@ -1,7 +1,7 @@
-import React, {MutableRefObject, useEffect, useRef, useState} from 'react';
-import {Row, Col, Card, Button, Divider} from 'antd';
+import React, {useEffect, useRef, useState} from 'react';
+import {Button, Card, Col, Divider, Row, Tabs} from 'antd';
 import {useDrag, useDrop, XYCoord} from 'react-dnd';
-import {ApiComponent, ElButton} from '../lowcode/BaseComponents';
+import {ApiComponent, ElButton, ElTable} from '../lowcode/BaseComponents';
 import {
     ApiConfig,
     ApiType,
@@ -9,12 +9,13 @@ import {
     ButtonType,
     ElementPosition,
     ElementUIComponents,
+    TableConfig,
     TarsusLowCode
 } from '../define';
-import {DeleteOutlined, EditOutlined} from '@ant-design/icons';
-import {EditApiModal, EditButtonModal} from '../lowcode/EditModals.tsx';
+import {AndroidOutlined, AppleOutlined, EditOutlined} from '@ant-design/icons';
+import {EditApiModal, EditButtonModal, EditTableModal} from '../lowcode/EditModals.tsx';
 import CreateFileComponent from '../lowcode/CreateFileComponent';
-import {GetElement, GetView, GetViews} from '../api/lowcode';
+import {DeleteElement, GetElement, GetView, GetViews} from '../api/lowcode';
 import SpaceBetween from "../components/SpaceBetween.tsx";
 import GetDifferenceComponent from "../lowcode/GetDifferenceComponent.tsx";
 
@@ -32,7 +33,8 @@ function isElementIn(clientOffset: XYCoord, elementRect) {
 
 const AvailableComponents = [
     {name: '按钮', type: ElementUIComponents.BUTTON, component: <ElButton type={ButtonType.Common} text={'按钮'}/>},
-    {name: '接口', type: ElementUIComponents.API, component: <ApiComponent/>}
+    {name: '接口', type: ElementUIComponents.API, component: <ApiComponent/>},
+    {name: '表格', type: ElementUIComponents.TABLE, component: <ElTable/>},
     // 添加更多可选组件
 ];
 
@@ -63,15 +65,20 @@ function LowCodeDashBoard() {
 
     const [isButtonComponentOpen, setButtonComponentOpen] = useState(false)
     const [isApiComponentOpen, setApiComponentOpen] = useState(false)
+    const [isTableComponentOpen, setIsTableComponentOpen] = useState(false)
+
+    const [activeKey,setActiveKey] = useState(0)
     const [uid, setUid] = useState('')
     const [fileUid, setFileUid] = useState('')
 
-    const [TopContainers,SetTopContainers] = useState([])
-    const [TableContainers,SetTableContainers] = useState([])
+    const [TopContainers, SetTopContainers] = useState([])
+    const [TableContainers, SetTableContainers] = useState([])
 
     // 组件Containers
     const [ButtonContainers, SetButtonContainers] = useState([])
     const [ApiContainers, SetApiContainers] = useState([])
+    const [ElTablesContainers, SetElTablesContainers] = useState([])
+
     useEffect(() => {
         if (!fileUid) {
             return;
@@ -81,13 +88,15 @@ function LowCodeDashBoard() {
             SetButtonContainers(Buttons)
             const Apis = res.data[ElementUIComponents.API] || []
             SetApiContainers(Apis)
+            const Tables = res.data[ElementUIComponents.TABLE] || []
+            SetElTablesContainers(Tables)
         })
 
-        GetElement(fileUid,ElementPosition.Table).then(res=>{
-            SetTableContainers([...TableContainers,...res.data])
+        GetElement(fileUid, ElementPosition.Table).then(res => {
+            SetTableContainers([...TableContainers, ...res.data])
         })
-        GetElement(fileUid,ElementPosition.Top).then(res=>{
-            SetTopContainers([...TopContainers,...res.data])
+        GetElement(fileUid, ElementPosition.Top).then(res => {
+            SetTopContainers([...TopContainers, ...res.data])
         })
 
     }, [fileUid])
@@ -134,12 +143,26 @@ function LowCodeDashBoard() {
                 SetApiContainers([...ApiContainers, data])
                 ElementData = data;
             }
+            if (item.type === ElementUIComponents.TABLE) {
+                const data: TableConfig = {
+                    text:"表格",
+                    data:[],
+                    modelData:'',
+                    isBorder:true,
+                    isAlignCenter:true,
+                    type:ElementUIComponents.TABLE,
+                    uid:'',
+                    fileUid: fileUid,
+                }
+                tarsusLowCode.CreateTable(data)
+                SetElTablesContainers([...ElTablesContainers, data])
+                ElementData = data;
+            }
+            isElementInTop && tarsusLowCode.AddTopElement(fileUid, ElementData)
+            isElementInTable && tarsusLowCode.AddTableElement(fileUid, ElementData)
+            isElementInTop && SetTopContainers([...TopContainers, ElementData])
+            isElementInTable && SetTableContainers([...TableContainers, ElementData])
 
-            isElementInTop && tarsusLowCode.AddTopElement(fileUid,ElementData)
-            isElementInTable && tarsusLowCode.AddTableElement(fileUid,ElementData)
-            isElementInTop && SetTopContainers([...TopContainers,ElementData])
-            isElementInTable && SetTableContainers([...TableContainers,ElementData])
-            
             TableElement.current!.style.background = 'unset'
             TopElement.current!.style.background = 'unset'
 
@@ -180,8 +203,38 @@ function LowCodeDashBoard() {
         if (ElementUIComponents.BUTTON == type) {
             const updatedComponents = ButtonContainers.filter((c) => c.uid !== componentId);
             SetButtonContainers(updatedComponents);
-            // todo 添加删除的API
         }
+        if (ElementUIComponents.API == type) {
+            const updatedComponents = ApiContainers.filter((c) => c.uid !== componentId);
+            SetApiContainers(updatedComponents);
+        }
+        if (ElementUIComponents.TABLE == type) {
+            const updatedComponents = ElTablesContainers.filter((c) => c.uid !== componentId);
+            SetElTablesContainers(updatedComponents);
+        }
+
+        const updateTopContainers = TopContainers.filter((c) => c.uid !== componentId);
+        const updateTableContainers = TableContainers.filter((c) => c.uid !== componentId);
+
+        let position = ''
+        let findTableItem = TableContainers.find(item => item.uid == componentId)
+        let findTopItem = TopContainers.find(item => item.uid == componentId)
+
+        if (findTableItem) {
+            position = ElementPosition.Table
+        }
+        if (findTopItem) {
+            position = ElementPosition.Top
+        }
+        const data = {
+            fileUid,
+            position,
+            config: findTableItem || findTopItem
+        }
+
+        SetTopContainers(updateTopContainers);
+        SetTableContainers(updateTableContainers);
+        DeleteElement(data)
     };
     const handleEditComponent = (componentId, type) => {
         setUid(componentId)
@@ -191,33 +244,92 @@ function LowCodeDashBoard() {
         if (type == ElementUIComponents.API) {
             setApiComponentOpen(true)
         }
+        if (type == ElementUIComponents.TABLE) {
+            setIsTableComponentOpen(true)
+        }
     };
     const [isCreateFileOpen, SetIsCreateFileOpen] = useState(false)
 
     const handleCreate = (value) => {
         const {fileName} = value
         const TarsusLowCodeInstance = new TarsusLowCode(fileName, {isNew: true, fileUid: ''})
+        setActiveKey(0)
         setFileUid(TarsusLowCodeInstance.FileConfig.fileUid)
         SetTarsusLowCode(TarsusLowCodeInstance)
     }
     const handleSetFile = (item) => {
         setFileUid(item.fileUid)
+        setActiveKey(0)
         const TarsusLowCodeInstance = new TarsusLowCode(item.fileName, {isNew: false, fileUid: item.fileUid})
         SetTarsusLowCode(TarsusLowCodeInstance)
+    }
+    const callBackEditFunc = (data: any, type: ElementUIComponents) => {
+        const {uid} = data
+        let position = ElementPosition.Table
+        // 替换容器内的数据
+
+        const updatedTableContainers = TableContainers.map((item) => {
+            if (item.uid === uid) {
+                // 找到要更新的元素，替换它
+                position = ElementPosition.Table;
+                return data;
+            }
+            return item;
+        });
+
+        const updatedTopContainers = TopContainers.map((item) => {
+            if (item.uid === uid) {
+                // 找到要更新的元素，替换它
+                position = ElementPosition.Top;
+                return data;
+            }
+            return item;
+        });
+
+        tarsusLowCode.UpdateElement(fileUid, position, data)
+
+        SetTableContainers(updatedTableContainers);
+        SetTopContainers(updatedTopContainers);
+
+        const updatedButtonContainers = ButtonContainers.map(item => {
+            if (item.uid === uid) {
+                return data;
+            }
+            return item;
+        })
+
+        const updatedApiContainers = ApiContainers.map(item => {
+            if (item.uid === uid) {
+                return data;
+            }
+            return item;
+        })
+
+        const updatedElTableContainers = ElTablesContainers.map(item => {
+            if (item.uid === uid) {
+                return data;
+            }
+            return item;
+        })
+
+        SetButtonContainers(updatedButtonContainers);
+        SetApiContainers(updatedApiContainers);
+        SetElTablesContainers(updatedElTableContainers);
     }
     return (
         <Row gutter={24}>
             <Col span={4}>
                 <Card title="可选组件">
-                    {AvailableComponents.map((component) => (
-                        <DraggableComponent key={component.name} component={component}/>
-                    ))}
-                </Card>
-                <Card title="所有文件">
-                    {AllFiles.map((item) => {
-                        return <Button key={item.fileUid} type={'primary'}
-                                       onClick={() => handleSetFile(item)}>{item.fileName}</Button>
-                    })}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                    }}>
+                        {AvailableComponents.map((component) => (
+                            <DraggableComponent key={component.name} component={component}/>
+                        ))}
+                    </div>
                 </Card>
             </Col>
             <Col span={15}>
@@ -237,50 +349,92 @@ function LowCodeDashBoard() {
                         width: '100%',
                         borderBottom: '1px dashed gray'
                     }} ref={TopElement}>
-                        {TopContainers.map(item=>(
+                        {TopContainers.map(item => (
                             <GetDifferenceComponent {...item}></GetDifferenceComponent>
                         ))}
                     </div>
 
                     {/*表格组件*/}
                     <div ref={TableElement} style={{height: '600px', width: '100%'}}>
-                        {TableContainers.map(item=>(
+                        {TableContainers.map(item => (
                             <GetDifferenceComponent {...item}></GetDifferenceComponent>
                         ))}
                     </div>
                 </Card>
             </Col>
             <Col span={5}>
-                <Card title="已添加组件">
-                    {ButtonContainers.map((component) => (
-                        <SpaceBetween key={component.uid}>
-                            <ElButton type={ButtonType.Common} text={component.text}/>
-                            <div>
-                                <Divider type="vertical"/>
-                                <Button
-                                    type="link"
-                                    icon={<EditOutlined/>}
-                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.BUTTON)}
-                                    // 添加编辑组件的点击事件
-                                />
-                            </div>
-                        </SpaceBetween>
-                    ))}
-                    {ApiContainers.map((component) => (
-                        <SpaceBetween key={component.uid}>
-                            <ApiComponent url={component.url} text={component.text}/>
-                            <div>
-                                <Divider type="vertical"/>
-                                <Button
-                                    type="link"
-                                    icon={<EditOutlined/>}
-                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.API)}
-                                    // 添加编辑组件的点击事件
-                                />
-                            </div>
-                        </SpaceBetween>
-                    ))}
-                </Card>
+                <Tabs
+                    activeKey={activeKey}
+                    onTabClick={(key)=>setActiveKey(key)}
+                    items={[AppleOutlined, AndroidOutlined].map((Icon, i) => {
+                        let label, children;
+                        if (i == 0) {
+                            label = <span><Icon/>已添加</span>
+                            children = (
+                                <Card title="已添加组件">
+                                    {ButtonContainers.map((component) => (
+                                        <SpaceBetween key={component.uid}>
+                                            <ElButton {...component}/>
+                                            <div>
+                                                <Divider type="vertical"/>
+                                                <Button
+                                                    type="link"
+                                                    icon={<EditOutlined/>}
+                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.BUTTON)}
+                                                    // 添加编辑组件的点击事件
+                                                />
+                                            </div>
+                                        </SpaceBetween>
+                                    ))}
+                                    {ApiContainers.map((component) => (
+                                        <SpaceBetween key={component.uid}>
+                                            <ApiComponent {...component}/>
+                                            <div>
+                                                <Divider type="vertical"/>
+                                                <Button
+                                                    type="link"
+                                                    icon={<EditOutlined/>}
+                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.API)}
+                                                    // 添加编辑组件的点击事件
+                                                />
+                                            </div>
+                                        </SpaceBetween>
+                                    ))}
+                                    {ElTablesContainers.map((component) => (
+                                        <SpaceBetween key={component.uid}>
+                                            <ElTable {...component}/>
+                                            <div>
+                                                <Divider type="vertical"/>
+                                                <Button
+                                                    type="link"
+                                                    icon={<EditOutlined/>}
+                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.TABLE)}
+                                                    // 添加编辑组件的点击事件
+                                                />
+                                            </div>
+                                        </SpaceBetween>
+                                    ))}
+                                </Card>
+                            )
+                        }
+                        if (i == 1) {
+                            label = <span><Icon/>所有 </span>
+                            children = (
+                                <Card title="所有文件">
+                                    {AllFiles.map((item) => {
+                                        return <Button key={item.fileUid} type={'primary'} onClick={() => handleSetFile(item)}>{item.fileName}</Button>
+                                    })}
+                                </Card>
+                            )
+                        }
+                        return {
+                            label,
+                            key: i,
+                            children,
+                        };
+                    })}
+                />
+
             </Col>
             <EditButtonModal
                 isButtonComponentOpen={isButtonComponentOpen}
@@ -289,6 +443,7 @@ function LowCodeDashBoard() {
                 uid={uid}
                 lowcodeComponent={tarsusLowCode}
                 ApiData={ApiContainers}
+                callBackEditFunc={callBackEditFunc}
             ></EditButtonModal>
             <EditApiModal
                 isApiComponentOpen={isApiComponentOpen}
@@ -297,7 +452,17 @@ function LowCodeDashBoard() {
                 uid={uid}
                 lowcodeComponent={tarsusLowCode}
                 ApiData={ApiContainers}
+                callBackEditFunc={callBackEditFunc}
             ></EditApiModal>
+            <EditTableModal
+                isTableComponentOpen={isTableComponentOpen}
+                setTableComponentOpen={setIsTableComponentOpen}
+                removeComponent={removeComponent}
+                uid={uid}
+                lowcodeComponent={tarsusLowCode}
+                ApiData={ApiContainers}
+                callBackEditFunc={callBackEditFunc}
+            ></EditTableModal>
             <CreateFileComponent
                 isCreateFileOpen={isCreateFileOpen}
                 SetIsCreateFileOpen={SetIsCreateFileOpen}

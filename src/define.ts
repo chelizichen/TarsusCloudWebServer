@@ -26,18 +26,19 @@ type PaginationConfig = {
     type:ElementUIComponents.PAGINATION
 } & FileConfig
 
-type TableConfig = {
+export type TableConfig = {
     data:Array<{
         columnName:string;
         filedName:string;
-        isAlignCenter:boolean;
-        isBorder:boolean;
         columnUid:string;
-        type:ElementUIComponents.TABLE;
     }>;
     modelData:string;//will create vmodel
     uid:string;
-} & FileConfig;
+    text:string;
+    isBorder:boolean;
+    isAlignCenter:boolean;
+    type:ElementUIComponents.TABLE;
+} & Pick<FileConfig, 'fileUid'>;
 
 type ColumnDetailConfig = {
     targetTableUid:string;
@@ -140,6 +141,8 @@ interface LowCodeMethods{
     AddTopElement(fileUid:string,anyConfig:any):void;
 
     AddTableElement(fileUid:string,anyConfig:any):void;
+
+    UpdateElement(fileUid:string,position:ElementPosition,config:any):void;
 }
 
 
@@ -241,8 +244,10 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
             data:config
         })
     }
-    CreateTable(config: TableConfig): void {
-        config.uid = this.getUid()
+    CreateTable(config: TableConfig,isUpdate?:boolean): void {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
         this.request({
             url:'CreateTable',
             data:config
@@ -301,6 +306,18 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
         }
         this.request({
             url:'AddElement',
+            data
+        })
+    }
+
+    UpdateElement(fileUid: string, position: ElementPosition, config: any): void {
+        const data = {
+            fileUid,
+            position,
+            config,
+        }
+        this.request({
+            url:'UpdateElement',
             data
         })
     }

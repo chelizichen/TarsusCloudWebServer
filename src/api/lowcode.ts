@@ -32,3 +32,11 @@ export function GetElement(fileUid,position:ElementPosition){
         data
     })
 }
+
+export function DeleteElement(data){
+    return request({
+        url: "/main/lowcode/DeleteElement",
+        method: "post",
+        data
+    })
+}

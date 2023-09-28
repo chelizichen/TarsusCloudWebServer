@@ -1,7 +1,8 @@
-import {Button, Input, Select, Modal, Form} from 'antd';
+import {Button, Form, Input, Modal, Select, Switch, List} from 'antd';
 import React, {useEffect, useState} from 'react';
 import {ApiType, ButtonType, ElementUIComponents, TarsusLowCode} from '../define';
 import {ApiComponent} from "./BaseComponents.tsx";
+import SpaceBetween from "../components/SpaceBetween.tsx";
 
 type Props = {
     uid: string;
@@ -9,7 +10,8 @@ type Props = {
     isButtonComponentOpen: boolean;
     setButtonComponentOpen: (bool: boolean) => void;
     removeComponent: (...args: any[]) => void;
-    ApiData: any[]
+    ApiData: any[];
+    callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
 }
 
 export function EditButtonModal(
@@ -19,7 +21,8 @@ export function EditButtonModal(
         isButtonComponentOpen,
         setButtonComponentOpen,
         removeComponent,
-        ApiData
+        ApiData,
+        callBackEditFunc
     }: Props) {
     const [form] = Form.useForm();
     const [originData, setOriginData] = useState({})
@@ -52,7 +55,8 @@ export function EditButtonModal(
 
     const handleEdit = () => {
         const mergeData = Object.assign(originData, form.getFieldsValue())
-        lowcodeComponent.CreateButton(mergeData,true)
+        lowcodeComponent.CreateButton(mergeData, true)
+        callBackEditFunc(mergeData, ElementUIComponents.BUTTON)
     }
 
     const handleDelete = () => {
@@ -91,7 +95,7 @@ export function EditButtonModal(
 
                 <Form.Item
                     name="apiUid"
-                    rules={[{required: true, message: 'Please input button text!'}]}
+                    rules={[{required: false, message: 'Please input button text!'}]}
                 >
                     <Select>
                         {ApiData.map(item => (
@@ -121,7 +125,8 @@ type ApiProps = {
     isApiComponentOpen: boolean;
     setApiComponentOpen: (bool: boolean) => void;
     removeComponent: (...args: any[]) => void;
-    ApiData: any[]
+    ApiData: any[];
+    callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
 }
 
 export function EditApiModal(
@@ -131,8 +136,9 @@ export function EditApiModal(
         isApiComponentOpen,
         setApiComponentOpen,
         removeComponent,
-        ApiData
-    }:ApiProps) {
+        ApiData,
+        callBackEditFunc
+    }: ApiProps) {
     const [form] = Form.useForm();
     const [originData, setOriginData] = useState({})
     useEffect(() => {
@@ -164,13 +170,14 @@ export function EditApiModal(
 
     const handleEdit = () => {
         const mergeData = Object.assign(originData, form.getFieldsValue())
-        lowcodeComponent.CreateApi(mergeData,true)
+        lowcodeComponent.CreateApi(mergeData, true)
+        callBackEditFunc(mergeData, ElementUIComponents.API)
     }
 
     const handleDelete = () => {
         const fileUid = lowcodeComponent.FileConfig.fileUid
         lowcodeComponent.DeleteComponent(fileUid, uid)
-        removeComponent(uid, ElementUIComponents.BUTTON)
+        removeComponent(uid, ElementUIComponents.API)
     }
     return (
         <Modal
@@ -192,23 +199,19 @@ export function EditApiModal(
                     rules={[{required: true, message: 'Please input button text!'}]}
                 >
                     <Select>
-                        <Select.Option key={1} value={ApiType.DELETE}><Button
-                            style={{color: "red",}}>删除</Button>
+                        <Select.Option key={1} value={ApiType.DELETE}>删除
                         </Select.Option>
-                        <Select.Option key={2} value={ApiType.LINK}><Button
-                            type={'link'}>链接</Button>
+                        <Select.Option key={2} value={ApiType.LINK}>链接
                         </Select.Option>
-                        <Select.Option key={3} value={ApiType.SEARCH}><Button
-                            style={{color: "white", background: "green"}} type={'text'}>搜索</Button>
+                        <Select.Option key={3} value={ApiType.SEARCH}>搜索
                         </Select.Option>
-                        <Select.Option key={4} value={ApiType.UPDATE}><Button
-                            type={'primary'}>更新</Button>
+                        <Select.Option key={4} value={ApiType.UPDATE}>更新
                         </Select.Option>
                     </Select>
                 </Form.Item>
                 <Form.Item
                     name="url"
-                    rules={[{required: true, message: 'Please input api uri!'}]}
+                    rules={[{required: false, message: 'Please input api uri!'}]}
                 >
                     <Input placeholder="Please input api uri!"/>
                 </Form.Item>
@@ -225,3 +228,144 @@ export function EditApiModal(
     );
 }
 
+
+type EditTableProps = {
+    uid: string;
+    lowcodeComponent: TarsusLowCode;
+    isTableComponentOpen: boolean;
+    setTableComponentOpen: (bool: boolean) => void;
+    removeComponent: (...args: any[]) => void;
+    ApiData: any[];
+    callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
+}
+
+export function EditTableModal(
+    {
+        uid,
+        lowcodeComponent,
+        isTableComponentOpen,
+        setTableComponentOpen,
+        removeComponent,
+        ApiData,
+        callBackEditFunc
+    }: EditTableProps) {
+    const [form] = Form.useForm();
+    const [originData, setOriginData] = useState({})
+    useEffect(() => {
+    }, [ApiData]);
+    // 每次uid改变的时候都需要去获取不同的组件数据
+    useEffect(() => {
+        if (!lowcodeComponent?.FileConfig?.fileUid) {
+            return;
+        }
+        const data = {
+            uid,
+            fileUid: lowcodeComponent.FileConfig.fileUid
+        }
+        lowcodeComponent.request({
+            url: 'GetComponent',
+            data
+        }).then(res => {
+            console.log('EditTableModal', res.data);
+            form.setFieldsValue(res.data)
+            setOriginData(res.data)
+        })
+    }, [uid])
+
+    const handleFinish = () => {
+        setTableComponentOpen(false)
+        form.resetFields();
+    }
+
+    const handleEdit = () => {
+        const mergeData = Object.assign(originData, form.getFieldsValue())
+        lowcodeComponent.CreateTable(mergeData, true)
+        callBackEditFunc(mergeData, ElementUIComponents.TABLE)
+    }
+
+    const handleDelete = () => {
+        const fileUid = lowcodeComponent.FileConfig.fileUid
+        lowcodeComponent.DeleteComponent(fileUid, uid)
+        removeComponent(uid, ElementUIComponents.TABLE)
+    }
+
+    return (
+        <Modal
+            title={`Edit Table Component `}
+            open={isTableComponentOpen}
+            onCancel={() => setTableComponentOpen(false)}
+            footer={null}
+            width={600}
+        >
+            <Form form={form} onFinish={handleFinish}>
+                <Form.List name="data">
+                    {(fields, {add, remove}) => (
+                        <div>
+                            {fields.map(({key, name, fieldKey, ...restField}) => (
+                                <SpaceBetween key={key}>
+                                    <Form.Item
+                                        label="列名"
+                                        name={[name, 'columnName']}
+                                        fieldKey={[fieldKey, 'columnName']}
+                                        {...restField}
+                                    ><Input placeholder="列名"/>
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="字段名"
+                                        name={[name, 'filedName']}
+                                        fieldKey={[fieldKey, 'filedName']}
+                                        {...restField}
+                                    ><Input placeholder="字段名"/>
+                                    </Form.Item>
+                                    <Button
+                                        onClick={() => {
+                                            remove(name);
+                                        }}
+                                        type={"primary"}
+                                    >删除
+                                    </Button>
+                                </SpaceBetween>
+                            ))}
+                            <Button
+                                onClick={() => {
+                                    add(); // 添加一个新的 data 条目
+                                }}
+                                type="primary"
+                            >
+                                添加 Column
+                            </Button>
+                        </div>
+                    )}
+                </Form.List>
+                {/* 模型数据 */}
+                <Form.Item label="模型数据" name="modelData">
+                    <Input placeholder="模型数据"/>
+                </Form.Item>
+
+                {/* 文本 */}
+                <Form.Item label="文本" name="text">
+                    <Input placeholder="文本"/>
+                </Form.Item>
+
+                {/* 是否显示边框 */}
+                <Form.Item label="是否显示边框" name="isBorder" valuePropName="checked">
+                    <Switch/>
+                </Form.Item>
+
+                {/* 是否居中 */}
+                <Form.Item label="是否居中" name="isAlignCenter" valuePropName="checked">
+                    <Switch/>
+                </Form.Item>
+
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" onClick={handleEdit}>
+                        EDIT
+                    </Button>
+                    <Button style={{color: "red", marginLeft: "20px"}} htmlType="submit" onClick={handleDelete}>
+                        DELETE
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
+}
