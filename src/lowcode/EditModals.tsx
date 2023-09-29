@@ -658,7 +658,7 @@ export function ElSelectionModal(
     }
     return (
         <Modal
-            title={`Edit Pagination Component `}
+            title={`Edit Selection Component `}
             open={isSelectionComponentOpen}
             onCancel={() => SetSelectionComponentOpen(false)}
             footer={null}
@@ -770,7 +770,7 @@ export function ElOptionModal(
     }
     return (
         <Modal
-            title={`Edit Pagination Component `}
+            title={`Edit Options Component `}
             open={isOptionComponentOpen}
             onCancel={() => SetOptionComponentOpen(false)}
             footer={null}

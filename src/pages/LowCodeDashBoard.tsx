@@ -366,6 +366,9 @@ function LowCodeDashBoard() {
         if (type == ElementUIComponents.SELECT) {
             SetElSelectionComponentOpen(true)
         }
+        if (type == ElementUIComponents.OPTIONS) {
+            SetElOptionComponentOpen(true)
+        }
     };
     const [isCreateFileOpen, SetIsCreateFileOpen] = useState(false)
 
@@ -574,7 +577,7 @@ function LowCodeDashBoard() {
                                                 <Button
                                                     type="link"
                                                     icon={<EditOutlined/>}
-                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.SELECT)}
+                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.OPTIONS)}
                                                     // 添加编辑组件的点击事件
                                                 />
                                             </div>
