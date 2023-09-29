@@ -1,7 +1,16 @@
-import {Badge, Button, Card, Pagination, Table} from "antd";
+import {Badge, Button, Card, MenuProps, Pagination, Select, Table,Dropdown} from "antd";
 import {useEffect, useState} from "react";
-import {ApiConfig, ButtonConfig, ButtonType, PaginationConfig, TableConfig} from "../define";
+import {
+    ApiConfig,
+    ButtonConfig,
+    ButtonType,
+    OptionConfig,
+    PaginationConfig,
+    SelectConfig,
+    TableConfig
+} from "../define";
 import {ColumnsType} from "antd/es/table";
+import {DownOutlined} from "@ant-design/icons";
 
 
 export function ElButton(props: ButtonConfig) {
@@ -115,7 +124,7 @@ export function ElPagination({isOperate,url}:PaginationConfig){
             obj.margin = '20px';
             obj.width = '300px';
         }else {
-            obj.width = '200px';
+            obj.width = 'auto';
         }
         setStyle(obj)
     },[isOperate])
@@ -125,5 +134,57 @@ export function ElPagination({isOperate,url}:PaginationConfig){
                 <Pagination defaultCurrent={1} total={50} pageSize={10} size="small" />
             </Badge>
         </div>
+    )
+}
+
+export function ElSelection({isOperate}:SelectConfig){
+    const [style,setStyle]:React.CSSProperties = useState()
+    useEffect(()=>{
+        const obj:React.CSSProperties = {}
+        obj.display='flex'
+        obj.alignItems='center'
+        if(isOperate){
+            obj.float = 'right';
+            obj.margin = '20px';
+            obj.width = '300px';
+            obj.justifyContent='center'
+        }else {
+            obj.width = '100%';
+            obj.justifyContent='flex-start'
+        }
+        obj.height="50px"
+
+        setStyle(obj)
+    },[isOperate])
+    return(
+        <div style={{...style}}>
+            <Select
+                defaultValue="lucy"
+                style={{ width: 150 }}
+                options={[
+                    { value: 'jack', label: 'Jack' },
+                    { value: 'lucy', label: 'Lucy' },
+                    { value: 'Yiminghe', label: 'yiminghe'},
+                    { value: 'disabled', label: 'Disabled' },
+                ]}
+            />
+        </div>
+    )
+}
+
+export function ElOption({isOperate}:OptionConfig){
+    const items: MenuProps['items'] = [
+        {
+            label: 'Submit and continue',
+            key: '1',
+        },
+    ];
+    return(
+        <Dropdown.Button
+            icon={<DownOutlined />}
+            menu={{ items }}
+        >
+            Options
+        </Dropdown.Button>
     )
 }

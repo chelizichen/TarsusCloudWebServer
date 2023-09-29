@@ -46,18 +46,25 @@ type ColumnDetailConfig = {
     row:string;
 } & FileConfig
 
-type SelectConfig = {
+export type SelectConfig = {
     uid:string;
     modelData:string;
-    type:ElementUIComponents.SELECT
-} & FileConfig
+    type:ElementUIComponents.SELECT;
+    mutilate:boolean;
+    targetOptionUid:string;
+} & Pick<FileConfig, 'fileUid'>
 
-type OptionConfig = {
+// 有些情况下，需要配合表格的属性来使用
+// 比如后台返回枚举值的时候，通过选项框，直接找到对应的数据
+
+export type OptionConfig = {
     NameOfLabel:string;
     NameOfValue:string;
     type:ElementUIComponents.OPTIONS
+    options:[];
     uid:string;
-} & FileConfig
+    targetApiUid:string;
+} & Pick<FileConfig, 'fileUid'>
 
 export enum ButtonType{
     Main,
@@ -263,15 +270,19 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
             data:config
         })
     }
-    SetSelect(config: SelectConfig): void {
-        config.uid = this.getUid()
+    SetSelect(config: SelectConfig,isUpdate?:boolean): void {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
         this.request({
             url:'SetSelect',
             data:config
         })
     }
-    SetOption(config: OptionConfig): void {
-        config.uid = this.getUid()
+    SetOption(config: OptionConfig,isUpdate?:boolean): void {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
         this.request({
             url:'SetOption',
             data:config

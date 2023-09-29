@@ -1,19 +1,27 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Button, Card, Col, Divider, Row, Tabs} from 'antd';
 import {useDrag, useDrop, XYCoord} from 'react-dnd';
-import {ApiComponent, ElButton, ElPagination, ElTable} from '../lowcode/BaseComponents';
+import {ApiComponent, ElButton, ElOption, ElPagination, ElSelection, ElTable} from '../lowcode/BaseComponents';
 import {
     ApiConfig,
     ApiType,
     ButtonConfig,
     ButtonType,
     ElementPosition,
-    ElementUIComponents, PaginationConfig,
+    ElementUIComponents, OptionConfig,
+    PaginationConfig,
+    SelectConfig,
     TableConfig,
     TarsusLowCode
 } from '../define';
 import {AndroidOutlined, AppleOutlined, EditOutlined} from '@ant-design/icons';
-import {EditApiModal, EditButtonModal, EditTableModal, ElPaginationModal} from '../lowcode/EditModals.tsx';
+import {
+    EditApiModal,
+    EditButtonModal,
+    EditTableModal, ElOptionModal,
+    ElPaginationModal,
+    ElSelectionModal
+} from '../lowcode/EditModals.tsx';
 import CreateFileComponent from '../lowcode/CreateFileComponent';
 import {DeleteElement, GetElement, GetView, GetViews} from '../api/lowcode';
 import SpaceBetween from "../components/SpaceBetween.tsx";
@@ -36,6 +44,8 @@ const AvailableComponents = [
     {name: '接口', type: ElementUIComponents.API, component: <ApiComponent/>},
     {name: '表格', type: ElementUIComponents.TABLE, component: <ElTable/>},
     {name: '分页', type: ElementUIComponents.PAGINATION, component: <ElPagination/>},
+    {name: '选择器', type: ElementUIComponents.SELECT, component: <ElSelection/>},
+    {name: '选项框', type: ElementUIComponents.OPTIONS, component: <ElOption/>},
     // 添加更多可选组件
 ];
 
@@ -68,6 +78,8 @@ function LowCodeDashBoard() {
     const [isApiComponentOpen, setApiComponentOpen] = useState(false)
     const [isTableComponentOpen, setIsTableComponentOpen] = useState(false)
     const [isPaginationComponentOpen, SetPaginationComponentOpen] = useState(false)
+    const [isElSelectionComponentOpen, SetElSelectionComponentOpen] = useState(false)
+    const [isElOptionComponentOpen, SetElOptionComponentOpen] = useState(false)
 
     const [activeKey,setActiveKey] = useState(0)
     const [uid, setUid] = useState('')
@@ -81,18 +93,34 @@ function LowCodeDashBoard() {
     const [ApiContainers, SetApiContainers] = useState([])
     const [ElTablesContainers, SetElTablesContainers] = useState([])
     const [ElPaginationContainers, SetElPaginationContainers] = useState([])
+    const [ElSelectContainers, SetElSelectContainers] = useState([])
+    const [ElOptionContainers, SetElOptionContainers] = useState([])
 
     useEffect(() => {
         if (!fileUid) {
             return;
         }
         GetView(fileUid).then(res => {
+            // 按钮
             const Buttons = res.data[ElementUIComponents.BUTTON] || []
             SetButtonContainers(Buttons)
+
+            // API
             const Apis = res.data[ElementUIComponents.API] || []
             SetApiContainers(Apis)
+
+            // 表格
             const Tables = res.data[ElementUIComponents.TABLE] || []
             SetElTablesContainers(Tables)
+
+            // 选择器
+            const Selections = res.data[ElementUIComponents.SELECT] || []
+            SetElSelectContainers(Selections)
+
+            // 选择器
+            const Options = res.data[ElementUIComponents.OPTIONS] || []
+            SetElOptionContainers(Options)
+
 
             // 分页处理
             const Paginations = res.data[ElementUIComponents.PAGINATION] || []
@@ -201,6 +229,33 @@ function LowCodeDashBoard() {
                 SetElPaginationContainers(ElPaginationData)
                 ElementData = data;
             }
+            if (item.type === ElementUIComponents.SELECT) {
+                const data: SelectConfig = {
+                    fileUid: fileUid,
+                    modelData: "",
+                    type: ElementUIComponents.SELECT,
+                    uid: "",
+                    mutilate:false,
+                    targetOptionUid:''
+                }
+                tarsusLowCode.SetSelect(data)
+                SetElSelectContainers([...ElSelectContainers, data])
+                ElementData = data;
+            }
+            if (item.type === ElementUIComponents.OPTIONS) {
+                const data: OptionConfig = {
+                    NameOfLabel: "label",
+                    NameOfValue: "value",
+                    fileUid: fileUid,
+                    options: [],
+                    type: ElementUIComponents.OPTIONS,
+                    targetApiUid:'',
+                    uid: "",
+                }
+                tarsusLowCode.SetOption(data)
+                SetElOptionContainers([...ElOptionContainers, data])
+                ElementData = data;
+            }
             isElementInTop && tarsusLowCode.AddTopElement(fileUid, ElementData)
             isElementInTable && tarsusLowCode.AddTableElement(fileUid, ElementData)
             isElementInTop && SetTopContainers([...TopContainers, ElementData])
@@ -261,6 +316,16 @@ function LowCodeDashBoard() {
             SetElPaginationContainers(updatedComponents);
         }
 
+        if (ElementUIComponents.SELECT == type) {
+            const updatedComponents = ElSelectContainers.filter((c) => c.uid !== componentId);
+            SetElSelectContainers(updatedComponents);
+        }
+
+        if (ElementUIComponents.OPTIONS == type) {
+            const updatedComponents = ElOptionContainers.filter((c) => c.uid !== componentId);
+            SetElOptionContainers(updatedComponents);
+        }
+
         const updateTopContainers = TopContainers.filter((c) => c.uid !== componentId);
         const updateTableContainers = TableContainers.filter((c) => c.uid !== componentId);
 
@@ -297,6 +362,9 @@ function LowCodeDashBoard() {
         }
         if (type == ElementUIComponents.PAGINATION) {
             SetPaginationComponentOpen(true)
+        }
+        if (type == ElementUIComponents.SELECT) {
+            SetElSelectionComponentOpen(true)
         }
     };
     const [isCreateFileOpen, SetIsCreateFileOpen] = useState(false)
@@ -371,9 +439,25 @@ function LowCodeDashBoard() {
             return item;
         })
 
+        const updatedSelectionContainers = ElSelectContainers.map(item => {
+            if (item.uid === uid) {
+                return data;
+            }
+            return item;
+        })
+
+        const updatedOptionContrainers = ElOptionContainers.map(item => {
+            if (item.uid === uid) {
+                return data;
+            }
+            return item;
+        })
+
         SetButtonContainers(updatedButtonContainers);
         SetApiContainers(updatedApiContainers);
         SetElTablesContainers(updatedElTableContainers);
+        SetElSelectContainers(updatedSelectionContainers);
+        SetElOptionContainers(updatedOptionContrainers);
 
         // 单独对分页做API处理
         const ElPaginationData = updatedPaginationContainers.map(item=>{
@@ -395,12 +479,21 @@ function LowCodeDashBoard() {
                 <Card title="可选组件">
                     <div style={{
                         display: 'flex',
-                        justifyContent: 'center',
                         flexDirection: 'column',
-                        alignItems: 'center'
                     }}>
                         {AvailableComponents.map((component) => (
-                            <DraggableComponent key={component.name} component={component}/>
+                            <div  key={component.name}
+                                  style={{width:'100%',
+                                      // border:'1px gray dashed',
+                                      padding:'10px 5px',
+                                      margin:'5px 0 ',
+                                      // borderRadius:'10px',
+                                      display:'flex',
+                                      alignItems:'center',
+                                      justifyContent:'center'
+                            }}>
+                             <DraggableComponent key={component.name} component={component}/>
+                            </div>
                         ))}
                     </div>
                 </Card>
@@ -454,6 +547,34 @@ function LowCodeDashBoard() {
                                                     type="link"
                                                     icon={<EditOutlined/>}
                                                     onClick={() => handleEditComponent(component.uid, ElementUIComponents.BUTTON)}
+                                                    // 添加编辑组件的点击事件
+                                                />
+                                            </div>
+                                        </SpaceBetween>
+                                    ))}
+                                    {ElSelectContainers.map((component) => (
+                                        <SpaceBetween key={component.uid}>
+                                            <ElSelection {...component}/>
+                                            <div>
+                                                <Divider type="vertical"/>
+                                                <Button
+                                                    type="link"
+                                                    icon={<EditOutlined/>}
+                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.SELECT)}
+                                                    // 添加编辑组件的点击事件
+                                                />
+                                            </div>
+                                        </SpaceBetween>
+                                    ))}
+                                    {ElOptionContainers.map((component) => (
+                                        <SpaceBetween key={component.uid}>
+                                            <ElOption {...component}/>
+                                            <div>
+                                                <Divider type="vertical"/>
+                                                <Button
+                                                    type="link"
+                                                    icon={<EditOutlined/>}
+                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.SELECT)}
                                                     // 添加编辑组件的点击事件
                                                 />
                                             </div>
@@ -560,6 +681,29 @@ function LowCodeDashBoard() {
                 callBackEditFunc={callBackEditFunc}
                 TableData={ElTablesContainers}
             ></ElPaginationModal>
+
+            <ElSelectionModal
+                isSelectionComponentOpen={isElSelectionComponentOpen}
+                SetSelectionComponentOpen={SetElSelectionComponentOpen}
+                removeComponent={removeComponent}
+                uid={uid}
+                lowcodeComponent={tarsusLowCode}
+                ApiData={ApiContainers}
+                callBackEditFunc={callBackEditFunc}
+                TableData={ElTablesContainers}
+            ></ElSelectionModal>
+
+            <ElOptionModal
+                isOptionComponentOpen={isElOptionComponentOpen}
+                SetOptionComponentOpen={SetElOptionComponentOpen}
+                removeComponent={removeComponent}
+                uid={uid}
+                lowcodeComponent={tarsusLowCode}
+                ApiData={ApiContainers}
+                callBackEditFunc={callBackEditFunc}
+                TableData={ElTablesContainers}
+            ></ElOptionModal>
+
             <CreateFileComponent
                 isCreateFileOpen={isCreateFileOpen}
                 SetIsCreateFileOpen={SetIsCreateFileOpen}

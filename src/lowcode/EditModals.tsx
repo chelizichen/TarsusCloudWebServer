@@ -590,3 +590,230 @@ export function ElPaginationModal(
         </Modal>
     );
 }
+
+
+
+type ElSelectionModalProps = {
+    uid: string;
+    lowcodeComponent: TarsusLowCode;
+    isSelectionComponentOpen: boolean;
+    SetSelectionComponentOpen: (bool: boolean) => void;
+    removeComponent: (...args: any[]) => void;
+    ApiData: any[];
+    TableData:any[];
+    callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
+}
+
+export function ElSelectionModal(
+    {
+        uid,
+        lowcodeComponent,
+        isSelectionComponentOpen,
+        SetSelectionComponentOpen,
+        removeComponent,
+        ApiData,
+        callBackEditFunc,
+        TableData
+    }: ElSelectionModalProps) {
+    const [form] = Form.useForm();
+    const [originData, setOriginData] = useState({})
+    useEffect(() => {
+        console.log('ApiData', ApiData)
+        console.log('TableData', TableData)
+    }, [ApiData,TableData]);
+    // 每次uid改变的时候都需要去获取不同的组件数据
+    useEffect(() => {
+        if (!lowcodeComponent?.FileConfig?.fileUid) {
+            return;
+        }
+        const data = {
+            uid,
+            fileUid: lowcodeComponent.FileConfig.fileUid
+        }
+        lowcodeComponent.request({
+            url: 'GetComponent',
+            data
+        }).then(res => {
+            console.log('ElPaginationModal', res);
+            form.setFieldsValue(res.data)
+            setOriginData(res.data)
+        })
+    }, [uid])
+
+    const handleFinish = () => {
+        SetSelectionComponentOpen(false)
+        form.resetFields();
+    }
+
+    const handleEdit = () => {
+        const mergeData = Object.assign(originData, form.getFieldsValue())
+        lowcodeComponent.CreatePagination(mergeData, true)
+        callBackEditFunc(mergeData, ElementUIComponents.SELECT)
+    }
+
+    const handleDelete = () => {
+        const fileUid = lowcodeComponent.FileConfig.fileUid
+        lowcodeComponent.DeleteComponent(fileUid, uid)
+        removeComponent(uid, ElementUIComponents.SELECT)
+    }
+    return (
+        <Modal
+            title={`Edit Pagination Component `}
+            open={isSelectionComponentOpen}
+            onCancel={() => SetSelectionComponentOpen(false)}
+            footer={null}
+        >
+            <Form form={form} onFinish={handleFinish}>
+                <Form.Item
+                    label="数据模型"
+                    name="modelData"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="是否多选"
+                    name="mutilate"
+                    valuePropName="checked"
+                >
+                    <Switch />
+                </Form.Item>
+
+                <Form.Item
+                    name="QueryApiUid"
+                    rules={[{required: false, message: 'Please input button text!'}]}
+                    label="选择选项框"
+                >
+                    <Select bordered={false}>
+                        {ApiData.map(item => (
+                            <Select.Option value={item.uid} key={item.uid}>
+                                <ApiComponent {...item}/>
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" onClick={handleEdit}>
+                        EDIT
+                    </Button>
+                    <Button style={{color: "red", marginLeft: "20px"}} htmlType="submit" onClick={handleDelete}>
+                        DELETE
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
+}
+
+
+type ElOptionModalProps = {
+    uid: string;
+    lowcodeComponent: TarsusLowCode;
+    isOptionComponentOpen: boolean;
+    SetOptionComponentOpen: (bool: boolean) => void;
+    removeComponent: (...args: any[]) => void;
+    ApiData: any[];
+    TableData:any[];
+    callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
+}
+
+export function ElOptionModal(
+    {
+        uid,
+        lowcodeComponent,
+        isOptionComponentOpen,
+        SetOptionComponentOpen,
+        removeComponent,
+        ApiData,
+        callBackEditFunc,
+        TableData
+    }: ElOptionModalProps) {
+    const [form] = Form.useForm();
+    const [originData, setOriginData] = useState({})
+    useEffect(() => {
+    }, [ApiData,TableData]);
+    // 每次uid改变的时候都需要去获取不同的组件数据
+    useEffect(() => {
+        if (!lowcodeComponent?.FileConfig?.fileUid) {
+            return;
+        }
+        const data = {
+            uid,
+            fileUid: lowcodeComponent.FileConfig.fileUid
+        }
+        lowcodeComponent.request({
+            url: 'GetComponent',
+            data
+        }).then(res => {
+            console.log('ElPaginationModal', res);
+            form.setFieldsValue(res.data)
+            setOriginData(res.data)
+        })
+    }, [uid])
+
+    const handleFinish = () => {
+        SetOptionComponentOpen(false)
+        form.resetFields();
+    }
+
+    const handleEdit = () => {
+        const mergeData = Object.assign(originData, form.getFieldsValue())
+        lowcodeComponent.CreatePagination(mergeData, true)
+        callBackEditFunc(mergeData, ElementUIComponents.OPTIONS)
+    }
+
+    const handleDelete = () => {
+        const fileUid = lowcodeComponent.FileConfig.fileUid
+        lowcodeComponent.DeleteComponent(fileUid, uid)
+        removeComponent(uid, ElementUIComponents.OPTIONS)
+    }
+    return (
+        <Modal
+            title={`Edit Pagination Component `}
+            open={isOptionComponentOpen}
+            onCancel={() => SetOptionComponentOpen(false)}
+            footer={null}
+        >
+            <Form form={form} onFinish={handleFinish}>
+                <Form.Item
+                    label="数据模型"
+                    name="modelData"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="是否多选"
+                    name="mutilate"
+                    valuePropName="checked"
+                >
+                    <Switch />
+                </Form.Item>
+
+                <Form.Item
+                    name="QueryApiUid"
+                    rules={[{required: false, message: 'Please input button text!'}]}
+                    label="选择选项框"
+                >
+                    <Select bordered={false}>
+                        {ApiData.map(item => (
+                            <Select.Option value={item.uid} key={item.uid}>
+                                <ApiComponent {...item}/>
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" onClick={handleEdit}>
+                        EDIT
+                    </Button>
+                    <Button style={{color: "red", marginLeft: "20px"}} htmlType="submit" onClick={handleDelete}>
+                        DELETE
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
+}
