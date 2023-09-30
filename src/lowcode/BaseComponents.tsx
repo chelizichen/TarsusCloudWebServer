@@ -1,4 +1,4 @@
-import {Badge, Button, Card, MenuProps, Pagination, Select, Table,Dropdown} from "antd";
+import {Badge, Button, Card, MenuProps, Pagination, Select, Table, Dropdown,DatePicker} from "antd";
 import {useEffect, useState} from "react";
 import {
     ApiConfig,
@@ -7,7 +7,7 @@ import {
     OptionConfig,
     PaginationConfig,
     SelectConfig,
-    TableConfig
+    TableConfig, TimePickerConfig
 } from "../define";
 import {ColumnsType} from "antd/es/table";
 import {DownOutlined} from "@ant-design/icons";
@@ -15,7 +15,7 @@ import {DownOutlined} from "@ant-design/icons";
 
 export function ElButton(props: ButtonConfig) {
     const {btnType, text} = props;
-    const style:React.CSSProperties = {};
+    const style: React.CSSProperties = {};
     const getButtonType = () => {
         if (btnType == ButtonType.Main) {
             return 'primary'
@@ -26,7 +26,7 @@ export function ElButton(props: ButtonConfig) {
         if (btnType == ButtonType.Common) {
             return 'default'
         }
-        if(btnType == ButtonType.CREATE){
+        if (btnType == ButtonType.CREATE) {
             style.background = 'green'
             style.color = 'white'
         }
@@ -53,28 +53,32 @@ export function ApiComponent({url, text}: ApiProps) {
     )
 }
 
-export function ElTable({uid,data,isOperate,isAlignCenter}: TableConfig) {
-    const [columns,SetColumns] = useState([])
-    const [sourceData,SetSourceData] = useState([])
+export function ElTable({uid, data, isOperate, isAlignCenter}: TableConfig) {
+    const [columns, SetColumns] = useState([])
+    const [sourceData, SetSourceData] = useState([])
 
-    const [width,setWidth] = useState('')
+    const [width, setWidth] = useState('')
     useEffect(() => {
-        if(isOperate){
-           setWidth("100%")
-        }else {
+        if (isOperate) {
+            setWidth("100%")
+        } else {
             setWidth("200px")
         }
     }, []);
     useEffect(() => {
-        if(data instanceof Array && data.length){
-            SetColumns(data.map(item=>({title:item.columnName,dataIndex:item.filedName,align:isAlignCenter?'center':''})))
-            const keys = data.map(item=>item.filedName)
+        if (data instanceof Array && data.length) {
+            SetColumns(data.map(item => ({
+                title: item.columnName,
+                dataIndex: item.filedName,
+                align: isAlignCenter ? 'center' : ''
+            })))
+            const keys = data.map(item => item.filedName)
             const testData = {}
-            for(let v in keys){
+            for (let v in keys) {
                 testData[keys[v]] = keys[v]
             }
             SetSourceData([testData])
-        }else {
+        } else {
             SetColumns(demoColumns)
             SetSourceData(demoSourceData)
         }
@@ -109,82 +113,108 @@ export function ElTable({uid,data,isOperate,isAlignCenter}: TableConfig) {
         },
     ];
     return (
-        <div style={{width:width}}>
-            <Table columns={columns} dataSource={sourceData} size="middle" pagination={false} scroll={{ x: 'max-content' }} />
+        <div style={{width: width}}>
+            <Table columns={columns} dataSource={sourceData} size="middle" pagination={false}
+                   scroll={{x: 'max-content'}}/>
         </div>
     )
 }
 
-export function ElPagination({isOperate,url}:PaginationConfig){
-    const [style,setStyle]:React.CSSProperties = useState()
-    useEffect(()=>{
-        const obj:React.CSSProperties = {}
-        if(isOperate){
+export function ElPagination({isOperate, url}: PaginationConfig) {
+    const [style, setStyle]: React.CSSProperties = useState()
+    useEffect(() => {
+        const obj: React.CSSProperties = {}
+        if (isOperate) {
             obj.float = 'right';
             obj.margin = '20px';
             obj.width = '300px';
-        }else {
+        } else {
             obj.width = 'auto';
         }
         setStyle(obj)
-    },[isOperate])
-    return(
+    }, [isOperate])
+    return (
         <div style={{...style}}>
             <Badge count={url || 'api'}>
-                <Pagination defaultCurrent={1} total={50} pageSize={10} size="small" />
+                <Pagination defaultCurrent={1} total={50} pageSize={10} size="small"/>
             </Badge>
         </div>
     )
 }
 
-export function ElSelection({isOperate}:SelectConfig){
-    const [style,setStyle]:React.CSSProperties = useState()
-    useEffect(()=>{
-        const obj:React.CSSProperties = {}
-        obj.display='flex'
-        obj.alignItems='center'
-        if(isOperate){
+export function ElSelection(props: SelectConfig) {
+    const [style, setStyle]: React.CSSProperties = useState()
+    const {isOperate, options = []} = props
+    const [selectOptions, SetSelectOptions] = useState([
+        {value: 'jack', label: 'Jack'},
+        {value: 'lucy', label: 'Lucy'},
+        {value: 'Yiminghe', label: 'yiminghe'},
+        {value: 'disabled', label: 'Disabled'},
+    ])
+    useEffect(() => {
+        const obj: React.CSSProperties = {}
+        obj.display = 'flex'
+        obj.alignItems = 'center'
+        if (isOperate) {
             obj.float = 'right';
             obj.margin = '20px';
-            obj.width = '300px';
-            obj.justifyContent='center'
-        }else {
+            obj.width = '200px';
+            obj.justifyContent = 'center'
+        } else {
             obj.width = '100%';
-            obj.justifyContent='flex-start'
+            obj.justifyContent = 'flex-start'
         }
-        obj.height="50px"
+        obj.height = "50px"
 
         setStyle(obj)
-    },[isOperate])
-    return(
+        if (options.length) {
+            SetSelectOptions(options.map(item=>{
+                item.key = item.value
+                return item;
+            }))
+        }
+    }, [isOperate])
+    return (
         <div style={{...style}}>
             <Select
-                defaultValue="lucy"
-                style={{ width: 150 }}
-                options={[
-                    { value: 'jack', label: 'Jack' },
-                    { value: 'lucy', label: 'Lucy' },
-                    { value: 'Yiminghe', label: 'yiminghe'},
-                    { value: 'disabled', label: 'Disabled' },
-                ]}
+                defaultValue={"请选择"}
+                style={{width: 150}}
+                options={selectOptions}
             />
         </div>
     )
 }
 
-export function ElOption({isOperate}:OptionConfig){
-    const items: MenuProps['items'] = [
+export function ElOption({isOperate,options}: OptionConfig) {
+    const [selectOptions,SetSelectOptions] = useState([
         {
             label: 'Submit and continue',
+            value:'Submit and continue',
             key: '1',
         },
-    ];
-    return(
+    ])
+    useEffect(() => {
+        if(options && options.length){
+            SetSelectOptions(options.map(item=>{
+                item.key = item.value
+                return item;
+            }))
+        }
+    }, [options]);
+    return (
         <Dropdown.Button
-            icon={<DownOutlined />}
-            menu={{ items }}
+            menu={{items:selectOptions}}
         >
             Options
         </Dropdown.Button>
+    )
+}
+
+export function ElTimePicker({isOperate}: TimePickerConfig) {
+    useEffect(() => {
+
+    }, [isOperate]);
+    return (
+        <DatePicker.RangePicker showTime />
     )
 }

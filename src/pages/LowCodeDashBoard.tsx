@@ -1,7 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Button, Card, Col, Divider, Row, Tabs} from 'antd';
 import {useDrag, useDrop, XYCoord} from 'react-dnd';
-import {ApiComponent, ElButton, ElOption, ElPagination, ElSelection, ElTable} from '../lowcode/BaseComponents';
+import {
+    ApiComponent,
+    ElButton,
+    ElOption,
+    ElPagination,
+    ElSelection,
+    ElTable,
+    ElTimePicker
+} from '../lowcode/BaseComponents';
 import {
     ApiConfig,
     ApiType,
@@ -12,7 +20,7 @@ import {
     PaginationConfig,
     SelectConfig,
     TableConfig,
-    TarsusLowCode
+    TarsusLowCode, TimePickerConfig
 } from '../define';
 import {AndroidOutlined, AppleOutlined, EditOutlined} from '@ant-design/icons';
 import {
@@ -46,6 +54,7 @@ const AvailableComponents = [
     {name: '分页', type: ElementUIComponents.PAGINATION, component: <ElPagination/>},
     {name: '选择器', type: ElementUIComponents.SELECT, component: <ElSelection/>},
     {name: '选项框', type: ElementUIComponents.OPTIONS, component: <ElOption/>},
+    {name: '时间选择器', type: ElementUIComponents.TIMEPICKER, component: <ElTimePicker/>},
     // 添加更多可选组件
 ];
 
@@ -80,8 +89,9 @@ function LowCodeDashBoard() {
     const [isPaginationComponentOpen, SetPaginationComponentOpen] = useState(false)
     const [isElSelectionComponentOpen, SetElSelectionComponentOpen] = useState(false)
     const [isElOptionComponentOpen, SetElOptionComponentOpen] = useState(false)
+    const [isElTimePickerComponentOpen, SetElTimePickerComponentOpen] = useState(false)
 
-    const [activeKey,setActiveKey] = useState(0)
+    const [activeKey, setActiveKey] = useState(0)
     const [uid, setUid] = useState('')
     const [fileUid, setFileUid] = useState('')
 
@@ -95,6 +105,7 @@ function LowCodeDashBoard() {
     const [ElPaginationContainers, SetElPaginationContainers] = useState([])
     const [ElSelectContainers, SetElSelectContainers] = useState([])
     const [ElOptionContainers, SetElOptionContainers] = useState([])
+    const [ElTimePickerContainers, SetElTimePickerContainers] = useState([])
 
     useEffect(() => {
         if (!fileUid) {
@@ -121,24 +132,26 @@ function LowCodeDashBoard() {
             const Options = res.data[ElementUIComponents.OPTIONS] || []
             SetElOptionContainers(Options)
 
+            const TimePickers = res.data[ElementUIComponents.TIMEPICKER] || []
+            SetElTimePickerContainers(TimePickers)
 
             // 分页处理
             const Paginations = res.data[ElementUIComponents.PAGINATION] || []
-            const ElPaginationData =  Paginations.map(item=>{
-                const {QueryApiUid=''} = item;
-                const apiItem = Apis.find(item=>item.uid == QueryApiUid)
-                item.url = apiItem?apiItem.url:'';
+            const ElPaginationData = Paginations.map(item => {
+                const {QueryApiUid = ''} = item;
+                const apiItem = Apis.find(item => item.uid == QueryApiUid)
+                item.url = apiItem ? apiItem.url : '';
                 return item
             })
             SetElPaginationContainers(ElPaginationData)
             return Apis
-        }).then((Apis)=>{
+        }).then((Apis) => {
             // 获取不同地方的元素
             GetElement(fileUid, ElementPosition.Table).then(res => {
-                const tableElements = [...TableContainers, ...res.data].reverse().map(item=>{
-                    const {QueryApiUid=''} = item;
-                    const apiItem = Apis.find(item=>item.uid == QueryApiUid)
-                    item.url = apiItem?apiItem.url:'';
+                const tableElements = [...TableContainers, ...res.data].reverse().map(item => {
+                    const {QueryApiUid = ''} = item;
+                    const apiItem = Apis.find(item => item.uid == QueryApiUid)
+                    item.url = apiItem ? apiItem.url : '';
                     return item
                 })
                 SetTableContainers(tableElements)
@@ -194,13 +207,13 @@ function LowCodeDashBoard() {
             }
             if (item.type === ElementUIComponents.TABLE) {
                 const data: TableConfig = {
-                    text:"表格",
-                    data:[],
-                    modelData:'',
-                    isBorder:true,
-                    isAlignCenter:true,
-                    type:ElementUIComponents.TABLE,
-                    uid:'',
+                    text: "表格",
+                    data: [],
+                    modelData: '',
+                    isBorder: true,
+                    isAlignCenter: true,
+                    type: ElementUIComponents.TABLE,
+                    uid: '',
                     fileUid: fileUid,
                 }
                 tarsusLowCode.CreateTable(data)
@@ -218,11 +231,11 @@ function LowCodeDashBoard() {
                     uid: ""
                 }
                 tarsusLowCode.CreatePagination(data)
-                const ElPaginationData = [...ElPaginationContainers, data].map(item=>{
-                    const {QueryApiUid=''} = item;
-                    if(QueryApiUid){
-                        const apiItem = ApiContainers.find(item=>item.uid == QueryApiUid)
-                        item.url = apiItem?apiItem.url:'';
+                const ElPaginationData = [...ElPaginationContainers, data].map(item => {
+                    const {QueryApiUid = ''} = item;
+                    if (QueryApiUid) {
+                        const apiItem = ApiContainers.find(item => item.uid == QueryApiUid)
+                        item.url = apiItem ? apiItem.url : '';
                     }
                     return item
                 })
@@ -235,8 +248,8 @@ function LowCodeDashBoard() {
                     modelData: "",
                     type: ElementUIComponents.SELECT,
                     uid: "",
-                    mutilate:false,
-                    targetOptionUid:''
+                    mutilate: false,
+                    targetOptionUid: ''
                 }
                 tarsusLowCode.SetSelect(data)
                 SetElSelectContainers([...ElSelectContainers, data])
@@ -249,13 +262,24 @@ function LowCodeDashBoard() {
                     fileUid: fileUid,
                     options: [],
                     type: ElementUIComponents.OPTIONS,
-                    targetApiUid:'',
+                    targetApiUid: '',
                     uid: "",
                 }
                 tarsusLowCode.SetOption(data)
                 SetElOptionContainers([...ElOptionContainers, data])
                 ElementData = data;
             }
+            if (item.type === ElementUIComponents.TIMEPICKER) {
+                const data: TimePickerConfig = {
+                    fileUid: fileUid,
+                    modelData: "",
+                    uid: ""
+                }
+                tarsusLowCode.CreateTimePicker(data)
+                SetElTimePickerContainers([...ElTimePickerContainers, data])
+                ElementData = data;
+            }
+
             isElementInTop && tarsusLowCode.AddTopElement(fileUid, ElementData)
             isElementInTable && tarsusLowCode.AddTableElement(fileUid, ElementData)
             isElementInTop && SetTopContainers([...TopContainers, ElementData])
@@ -326,6 +350,11 @@ function LowCodeDashBoard() {
             SetElOptionContainers(updatedComponents);
         }
 
+        if (ElementUIComponents.TIMEPICKER == type) {
+            const updatedComponents = ElTimePickerContainers.filter((c) => c.uid !== componentId);
+            SetElTimePickerContainers(updatedComponents);
+        }
+
         const updateTopContainers = TopContainers.filter((c) => c.uid !== componentId);
         const updateTableContainers = TableContainers.filter((c) => c.uid !== componentId);
 
@@ -368,6 +397,9 @@ function LowCodeDashBoard() {
         }
         if (type == ElementUIComponents.OPTIONS) {
             SetElOptionComponentOpen(true)
+        }
+        if (type == ElementUIComponents.TIMEPICKER) {
+            SetElTimePickerComponentOpen(true)
         }
     };
     const [isCreateFileOpen, SetIsCreateFileOpen] = useState(false)
@@ -449,27 +481,33 @@ function LowCodeDashBoard() {
             return item;
         })
 
-        const updatedOptionContrainers = ElOptionContainers.map(item => {
+        const updatedOptionContainers = ElOptionContainers.map(item => {
             if (item.uid === uid) {
                 return data;
             }
             return item;
         })
 
+        const updatedElTimePickersContainers = ElOptionContainers.map(item => {
+            if (item.uid === uid) {
+                return data;
+            }
+            return item;
+        })
         SetButtonContainers(updatedButtonContainers);
         SetApiContainers(updatedApiContainers);
         SetElTablesContainers(updatedElTableContainers);
         SetElSelectContainers(updatedSelectionContainers);
-        SetElOptionContainers(updatedOptionContrainers);
-
+        SetElOptionContainers(updatedOptionContainers);
+        SetElTimePickerContainers(updatedElTimePickersContainers)
         // 单独对分页做API处理
-        const ElPaginationData = updatedPaginationContainers.map(item=>{
-            const {QueryApiUid=''} = item;
-            console.log('ApiContainers',ApiContainers)
-            console.log('QueryApiUid',QueryApiUid)
-            if(QueryApiUid){
-                const apiItem = ApiContainers.find(item=>item.uid == QueryApiUid)
-                item.url = apiItem?apiItem.url:'';
+        const ElPaginationData = updatedPaginationContainers.map(item => {
+            const {QueryApiUid = ''} = item;
+            console.log('ApiContainers', ApiContainers)
+            console.log('QueryApiUid', QueryApiUid)
+            if (QueryApiUid) {
+                const apiItem = ApiContainers.find(item => item.uid == QueryApiUid)
+                item.url = apiItem ? apiItem.url : '';
             }
             return item
         })
@@ -485,17 +523,18 @@ function LowCodeDashBoard() {
                         flexDirection: 'column',
                     }}>
                         {AvailableComponents.map((component) => (
-                            <div  key={component.name}
-                                  style={{width:'100%',
-                                      // border:'1px gray dashed',
-                                      padding:'10px 5px',
-                                      margin:'5px 0 ',
-                                      // borderRadius:'10px',
-                                      display:'flex',
-                                      alignItems:'center',
-                                      justifyContent:'center'
-                            }}>
-                             <DraggableComponent key={component.name} component={component}/>
+                            <div key={component.name}
+                                 style={{
+                                     width: '100%',
+                                     // border:'1px gray dashed',
+                                     padding: '10px 5px',
+                                     margin: '5px 0 ',
+                                     // borderRadius:'10px',
+                                     display: 'flex',
+                                     alignItems: 'center',
+                                     justifyContent: 'center'
+                                 }}>
+                                <DraggableComponent key={component.name} component={component}/>
                             </div>
                         ))}
                     </div>
@@ -518,14 +557,21 @@ function LowCodeDashBoard() {
                         width: '100%',
                         borderBottom: '1px dashed gray'
                     }} ref={TopElement}>
-                        {TopContainers.filter(item=>item.type != ElementUIComponents.API).map(item => (
-                            <GetDifferenceComponent {...item}></GetDifferenceComponent>
-                        ))}
+                        {TopContainers.filter(item => ![ElementUIComponents.API, ElementUIComponents.OPTIONS].includes(item.type)).map(item => {
+                                if (item.type == ElementUIComponents.SELECT) {
+                                    const ElOptionItem = ElOptionContainers.find(el => el.uid == item.targetOptionUid)
+                                    item.options = item.targetOptionUid ? ElOptionItem.options : []
+                                }
+                                return (
+                                    <GetDifferenceComponent {...item}></GetDifferenceComponent>
+                                )
+                            }
+                        )}
                     </div>
 
                     {/*表格组件*/}
                     <div ref={TableElement} style={{height: '600px', width: '100%'}}>
-                        {TableContainers.filter(item=>item.type != ElementUIComponents.API).map(item => (
+                        {TableContainers.filter(item => ![ElementUIComponents.API, ElementUIComponents.OPTIONS].includes(item.type)).map(item => (
                             <GetDifferenceComponent {...item}></GetDifferenceComponent>
                         ))}
                     </div>
@@ -534,7 +580,7 @@ function LowCodeDashBoard() {
             <Col span={5}>
                 <Tabs
                     activeKey={activeKey}
-                    onTabClick={(key)=>setActiveKey(key)}
+                    onTabClick={(key) => setActiveKey(key)}
                     items={[AppleOutlined, AndroidOutlined].map((Icon, i) => {
                         let label, children;
                         if (i == 0) {
@@ -555,20 +601,27 @@ function LowCodeDashBoard() {
                                             </div>
                                         </SpaceBetween>
                                     ))}
-                                    {ElSelectContainers.map((component) => (
-                                        <SpaceBetween key={component.uid}>
-                                            <ElSelection {...component}/>
-                                            <div>
-                                                <Divider type="vertical"/>
-                                                <Button
-                                                    type="link"
-                                                    icon={<EditOutlined/>}
-                                                    onClick={() => handleEditComponent(component.uid, ElementUIComponents.SELECT)}
-                                                    // 添加编辑组件的点击事件
-                                                />
-                                            </div>
-                                        </SpaceBetween>
-                                    ))}
+                                    {ElSelectContainers.map((component) => {
+                                            if (component.type == ElementUIComponents.SELECT) {
+                                                const ElOptionItem = ElOptionContainers.find(el => el.uid == component.targetOptionUid)
+                                                component.options = component.targetOptionUid ? ElOptionItem.options : []
+                                            }
+                                            return (
+                                                <SpaceBetween key={component.uid}>
+                                                    <ElSelection {...component}/>
+                                                    <div>
+                                                        <Divider type="vertical"/>
+                                                        <Button
+                                                            type="link"
+                                                            icon={<EditOutlined/>}
+                                                            onClick={() => handleEditComponent(component.uid, ElementUIComponents.SELECT)}
+                                                            // 添加编辑组件的点击事件
+                                                        />
+                                                    </div>
+                                                </SpaceBetween>
+                                            )
+                                        }
+                                    )}
                                     {ElOptionContainers.map((component) => (
                                         <SpaceBetween key={component.uid}>
                                             <ElOption {...component}/>
@@ -633,7 +686,8 @@ function LowCodeDashBoard() {
                             children = (
                                 <Card title="所有文件">
                                     {AllFiles.map((item) => {
-                                        return <Button key={item.fileUid} type={'primary'} onClick={() => handleSetFile(item)}>{item.fileName}</Button>
+                                        return <Button key={item.fileUid} type={'primary'}
+                                                       onClick={() => handleSetFile(item)}>{item.fileName}</Button>
                                     })}
                                 </Card>
                             )
@@ -694,8 +748,8 @@ function LowCodeDashBoard() {
                 ApiData={ApiContainers}
                 callBackEditFunc={callBackEditFunc}
                 TableData={ElTablesContainers}
+                OptionsData={ElOptionContainers}
             ></ElSelectionModal>
-
             <ElOptionModal
                 isOptionComponentOpen={isElOptionComponentOpen}
                 SetOptionComponentOpen={SetElOptionComponentOpen}
@@ -704,7 +758,6 @@ function LowCodeDashBoard() {
                 lowcodeComponent={tarsusLowCode}
                 ApiData={ApiContainers}
                 callBackEditFunc={callBackEditFunc}
-                TableData={ElTablesContainers}
             ></ElOptionModal>
 
             <CreateFileComponent

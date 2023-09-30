@@ -9,7 +9,8 @@ export enum ElementUIComponents{
     OPTIONS,
     PAGINATION,
     API,
-    BUTTON
+    BUTTON,
+    TIMEPICKER
 }
 
 type FileConfig = {
@@ -60,10 +61,12 @@ export type SelectConfig = {
 export type OptionConfig = {
     NameOfLabel:string;
     NameOfValue:string;
-    type:ElementUIComponents.OPTIONS
-    options:[];
+    type:ElementUIComponents.OPTIONS;
+    // 当ApiUid 不存在时，options 默认生效,
+    // 必须为 Array<{label:string,value:any}>的形式
+    options:Array<any>;
     uid:string;
-    targetApiUid:string;
+    targetApiUid:string; // 如果有ApiUid,则认为是从API取值
 } & Pick<FileConfig, 'fileUid'>
 
 export enum ButtonType{
@@ -117,6 +120,11 @@ type ElementConfig = {
     }
 }
 
+export type TimePickerConfig = {
+    uid:string;
+    modelData:string; // 自动生成 startTime 和 endTime
+} & Pick<FileConfig,"fileUid">
+
 
 interface LowCodeMethods{
     // 创建视图
@@ -151,6 +159,8 @@ interface LowCodeMethods{
     AddTableElement(fileUid:string,anyConfig:any):void;
 
     UpdateElement(fileUid:string,position:ElementPosition,config:any):void;
+
+    CreateTimePicker(config:TimePickerConfig):void;
 }
 
 
@@ -333,6 +343,16 @@ export class TarsusLowCode extends BaseComponent implements LowCodeMethods {
         this.request({
             url:'UpdateElement',
             data
+        })
+    }
+
+    CreateTimePicker(config: TimePickerConfig,isUpdate?:boolean): void {
+        if(!isUpdate){
+            config.uid = this.getUid()
+        }
+        this.request({
+            url:'CreateTimePicker',
+            data:config
         })
     }
 }

@@ -1,7 +1,7 @@
 import {Button, Form, Input, Modal, Select, Switch, Radio} from 'antd';
 import React, {useEffect, useState} from 'react';
 import {ApiType, ButtonType, ElementUIComponents, TableConfig, TarsusLowCode} from '../define';
-import {ApiComponent, ElTable} from "./BaseComponents.tsx";
+import {ApiComponent, ElOption, ElTable} from "./BaseComponents.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
 
 type Props = {
@@ -594,14 +594,14 @@ export function ElPaginationModal(
 
 
 type ElSelectionModalProps = {
-    uid: string;
-    lowcodeComponent: TarsusLowCode;
-    isSelectionComponentOpen: boolean;
-    SetSelectionComponentOpen: (bool: boolean) => void;
-    removeComponent: (...args: any[]) => void;
     ApiData: any[];
-    TableData:any[];
+    SetSelectionComponentOpen: (bool: boolean) => void;
     callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
+    isSelectionComponentOpen: boolean;
+    lowcodeComponent: TarsusLowCode;
+    removeComponent: (...args: any[]) => void;
+    uid: string;
+    OptionsData:any[];
 }
 
 export function ElSelectionModal(
@@ -613,14 +613,14 @@ export function ElSelectionModal(
         removeComponent,
         ApiData,
         callBackEditFunc,
-        TableData
+        OptionsData
     }: ElSelectionModalProps) {
     const [form] = Form.useForm();
     const [originData, setOriginData] = useState({})
     useEffect(() => {
         console.log('ApiData', ApiData)
-        console.log('TableData', TableData)
-    }, [ApiData,TableData]);
+        console.log('OptionsData',OptionsData)
+    }, [ApiData,OptionsData]);
     // 每次uid改变的时候都需要去获取不同的组件数据
     useEffect(() => {
         if (!lowcodeComponent?.FileConfig?.fileUid) {
@@ -679,14 +679,14 @@ export function ElSelectionModal(
                 </Form.Item>
 
                 <Form.Item
-                    name="QueryApiUid"
+                    name="targetOptionUid"
                     rules={[{required: false, message: 'Please input button text!'}]}
                     label="选择选项框"
                 >
                     <Select bordered={false}>
-                        {ApiData.map(item => (
+                        {OptionsData.map(item => (
                             <Select.Option value={item.uid} key={item.uid}>
-                                <ApiComponent {...item}/>
+                                <ElOption {...item}/>
                             </Select.Option>
                         ))}
                     </Select>
@@ -714,7 +714,6 @@ type ElOptionModalProps = {
     SetOptionComponentOpen: (bool: boolean) => void;
     removeComponent: (...args: any[]) => void;
     ApiData: any[];
-    TableData:any[];
     callBackEditFunc: (uid: any, type: ElementUIComponents) => void;
 }
 
@@ -727,12 +726,11 @@ export function ElOptionModal(
         removeComponent,
         ApiData,
         callBackEditFunc,
-        TableData
     }: ElOptionModalProps) {
     const [form] = Form.useForm();
     const [originData, setOriginData] = useState({})
     useEffect(() => {
-    }, [ApiData,TableData]);
+    }, [ApiData]);
     // 每次uid改变的时候都需要去获取不同的组件数据
     useEffect(() => {
         if (!lowcodeComponent?.FileConfig?.fileUid) {
@@ -774,26 +772,66 @@ export function ElOptionModal(
             open={isOptionComponentOpen}
             onCancel={() => SetOptionComponentOpen(false)}
             footer={null}
+            width={700}
         >
             <Form form={form} onFinish={handleFinish}>
+                <Form.List name="options">
+                    {(fields, {add, remove}) => (
+                        <div>
+                            {fields.map(({key, name, fieldKey, ...restField}) => (
+                                <SpaceBetween key={key}>
+                                    <Form.Item
+                                        label="标签"
+                                        name={[name, 'label']}
+                                        fieldKey={[fieldKey, 'label']}
+                                        {...restField}
+                                    ><Input placeholder="列名"/>
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="值"
+                                        name={[name, 'value']}
+                                        fieldKey={[fieldKey, 'value']}
+                                        {...restField}
+                                    ><Input placeholder="字段名"/>
+                                    </Form.Item>
+                                    <Button
+                                        onClick={() => {
+                                            remove(name);
+                                        }}
+                                        type={"primary"}
+                                        style={{background: 'red'}}
+                                    >删除
+                                    </Button>
+                                </SpaceBetween>
+                            ))}
+                            <Button
+                                onClick={() => {
+                                    add(); // 添加一个新的 data 条目
+                                }}
+                                type="primary"
+                            >
+                                添加标签
+                            </Button>
+                        </div>
+                    )}
+                </Form.List>
+
                 <Form.Item
-                    label="数据模型"
-                    name="modelData"
+                    label="标签名(label)"
+                    name="NameOfLabel"
                 >
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    label="是否多选"
-                    name="mutilate"
-                    valuePropName="checked"
+                    label="标签值(value)"
+                    name="NameOfValue"
                 >
-                    <Switch />
+                    <Input />
                 </Form.Item>
 
                 <Form.Item
                     name="QueryApiUid"
-                    rules={[{required: false, message: 'Please input button text!'}]}
-                    label="选择选项框"
+                    label="选择接口"
                 >
                     <Select bordered={false}>
                         {ApiData.map(item => (

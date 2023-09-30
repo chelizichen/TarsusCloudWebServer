@@ -11,4 +11,15 @@ const useStore = create((set) => ({
     setCurrDir: (currDir) => set({currDir})
 }));
 
+// todo 后期迁移
+const ComponentUidStore = create((set,) => ({
+    components:{},
+    setComponent: (uid,component) => {
+        const state = ComponentUidStore.getState();
+        state.components[uid] = component;
+        const mergeComponent = Object.assign({},state.components,{[uid]:component})
+        set({components:mergeComponent})
+    },
+    setComponents:(record)=>set({components:record})
+}))
 export default useStore;
