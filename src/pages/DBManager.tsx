@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Layout, Menu, Button, Typography, Table } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import { LinkToTable } from '../utils/chartsUtils';
+import {getDatabases} from "../api/main.ts";
 
 const { Title } = Typography;
 const { Sider, Content } = Layout;
@@ -10,9 +11,16 @@ const DatabaseManager = () => {
     const [selectedTable, setSelectedTable] = useState(null);
     const [viewMode, setViewMode] = useState('DATA'); // or 'STRUCT'
 
+    const [myTables,SetTables] = useState([])
+
+    useEffect(() => {
+        getDatabases({}).then(res=>{
+            SetTables(res.data)
+        })
+    }, []);
+
     // 假设的数据
     const dbName = 'MyDatabase';
-    const tables = ['table1', 'table2'];
 
     // 假设的表数据
     const tableData = [
@@ -63,7 +71,7 @@ const DatabaseManager = () => {
                     {dbName}
                 </Title>
                 <Menu mode="inline" defaultSelectedKeys={['1']}>
-                    {tables.map(table => (
+                    {myTables.map(table => (
                         <Menu.Item key={table} onClick={() => setSelectedTable(table)}>
                             {table}
                         </Menu.Item>

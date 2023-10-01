@@ -130,7 +130,7 @@ const UserDashboard = ({userInfo}: any) => {
     const [restartingPorts, setRestartingPorts] = useState({});
 
     const showDatabase = () => {
-        navigate("/database")
+        navigate("/tarsus/database")
     }
 
     const handleShutDown = async (port) => {
