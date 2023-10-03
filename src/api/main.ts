@@ -190,3 +190,31 @@ export async function getDatabases(data) {
     })
 }
 
+type SelectConfig = {
+    offset:string;
+    size:string;
+    searchFields:Array<{keyword:string,value:string}>;
+    descConfig:{filed:string;type:"desc"|"asc"};
+}
+
+export async function getTableDatas(tableName:string,config:SelectConfig) {
+    const params = {tableName};
+    const data = config;
+
+    return request({
+        url: "/main/db/query",
+        method: "post",
+        params,
+        data
+    })
+}
+
+
+export async function getTableDetail(tableName:string) {
+    const params = {tableName};
+    return request({
+        url: "/main/db/detail",
+        method: "post",
+        params,
+    })
+}
