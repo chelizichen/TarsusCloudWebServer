@@ -12,7 +12,20 @@ const DatabaseManager = () => {
     const [myTables,SetTables] = useState([])
     const [tableDatas,SetTableDatas] = useState([])
     const [tableColumns,SetTableColumns] = useState([])
-
+    const [fieldColumnsData,SetFieldColumnsData] = useState([])
+    const fieldsColumns = lodash.keys({
+        "Field": "id",
+        "Type": "int",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment"
+      }).map(item=>({
+        title: item.charAt(0).toUpperCase()
+            + item.slice(1),  // 首字母大写
+        dataIndex: item,
+        key: item
+      }))
     useEffect(() => {
         getDatabases({}).then(res=>{
             SetTables(res.data)
@@ -33,6 +46,7 @@ const DatabaseManager = () => {
                     dataIndex: item,
                     key: item
                 }))
+                SetFieldColumnsData(res.data)
                 SetTableColumns(keys)
             })
         }
@@ -68,7 +82,9 @@ const DatabaseManager = () => {
                                         <Table dataSource={tableDatas} columns={tableColumns} />
                                     </div>
                                 ) : (
-                                    <div></div>
+                                    <div>
+                                        <Table dataSource={fieldColumnsData} columns={fieldsColumns} />
+                                    </div>
                                 )}
                             </div>
                         </div>
