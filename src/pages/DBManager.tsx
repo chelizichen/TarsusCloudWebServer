@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Layout, Menu, Button, Typography, Table, Form, FormInstance, Popconfirm} from 'antd';
-import {getDatabases, getTableDatas, getTableDetail} from "../api/main.ts";
+import {getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 
@@ -66,20 +66,36 @@ const DatabaseManager = () => {
         form.setFieldsValue({...record});
         setEditingKey(record[KeyField]);
     };
-    const save = async (key: React.Key) => {
+    const save = async (key: any) => {
         try {
             const row = (await form.validateFields()) as any;
             const newData = [...tableDatas];
             const index = newData.findIndex((item) => key === item[KeyField]);
+            // 修改
             if (index > -1) {
                 const item = newData[index];
-                newData.splice(index, 1, {
+                const mergeItem = {
                     ...item,
-                    ...row,
-                });
+                    ...row
+                }
+                const body = {
+                    type:1,
+                    data:mergeItem,
+                    where:{
+                        [KeyField]:key
+                    }
+                }
+                const data = await saveTableData(selectedTable,body)
+                console.log(data)
+                // 合并
+                newData.splice(index, 1, mergeItem);
                 SetTableDatas(newData);
                 setEditingKey('');
             } else {
+                const body = {
+                    type:0,
+                    data:row,
+                }
                 newData.push(row);
                 SetTableDatas(newData);
                 setEditingKey('');

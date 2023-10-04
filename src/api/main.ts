@@ -218,3 +218,13 @@ export async function getTableDetail(tableName:string) {
         params,
     })
 }
+
+export async function saveTableData(tableName:string,data) {
+    const params = {tableName};
+    return request({
+        url: "/main/db/save",
+        method: "post",
+        params,
+        data
+    })
+}
