@@ -40,13 +40,13 @@ const DatabaseManager = () => {
             const editable = isEditing(record);
             return editable ? (
                 <span>
-                    <Typography.Link onClick={() => save(record.key)} style={{marginRight: 8}}>
-                        Save
-                    </Typography.Link>
-                    <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-                        <a>Cancel</a>
-                    </Popconfirm>
-                </span>
+            <Typography.Link onClick={() => save(record[KeyField])} style={{marginRight: 8}}>
+              Save
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <a>Cancel</a>
+            </Popconfirm>
+          </span>
             ) : (
                 <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
                     Edit
@@ -57,20 +57,20 @@ const DatabaseManager = () => {
     const [form] = Form.useForm();
 
     const [editingKey, setEditingKey] = useState('');
-    const isEditing = (record: any) => record.key === editingKey;
+    const isEditing = (record: any) => {
+        return record[KeyField] === editingKey
+    };
 
     const edit = (record: any & { key: React.Key }) => {
-        // debugger;
-        console.log(KeyField)
-        form.setFieldsValue({name: '', age: '', address: '', ...record});
-        setEditingKey(record.key);
+        console.log('PRIMARY-KEY', record[KeyField])
+        form.setFieldsValue({...record});
+        setEditingKey(record[KeyField]);
     };
     const save = async (key: React.Key) => {
         try {
             const row = (await form.validateFields()) as any;
-
             const newData = [...tableDatas];
-            const index = newData.findIndex((item) => key === item.key);
+            const index = newData.findIndex((item) => key === item[KeyField]);
             if (index > -1) {
                 const item = newData[index];
                 newData.splice(index, 1, {
@@ -134,10 +134,10 @@ const DatabaseManager = () => {
                     title: item.charAt(0).toUpperCase()
                         + item.slice(1),  // 首字母大写
                     dataIndex: item,
-                    key: item
+                    key: item,
+                    editable:true,
                 }))
-                const updatedKeys = [...keys, OperateColumn]
-                SetTableColumns(updatedKeys)
+                SetTableColumns(keys)
                 SetFieldColumnsData(res.data)
             })
         }
@@ -148,6 +148,23 @@ const DatabaseManager = () => {
             cell: EditableCell,
         },
     };
+
+    const mergedColumns = tableColumns.map((col) => {
+        if (!col.editable) {
+            return col;
+        }
+        return {
+            ...col,
+            onCell: (record: any) => ({
+                record,
+                inputType: 'text',
+                dataIndex: col.dataIndex,
+                title: col.title,
+                editing: isEditing(record),
+            }),
+        };
+    });
+
 
     return (
         <Layout style={{height: '100vh'}}>
@@ -182,12 +199,14 @@ const DatabaseManager = () => {
                                         </Button>
                                         <Form form={form} component={false}>
                                             <Table dataSource={tableDatas}
-                                                   columns={tableColumns}
+                                                   columns={[...mergedColumns, OperateColumn]}
                                                    rowSelection={{
                                                        type: "checkbox",
                                                        ...rowSelection,
                                                    }}
                                                    components={components}
+                                                   rowClassName="editable-row"
+                                                   bordered
                                             />
                                         </Form>
                                     </div>
