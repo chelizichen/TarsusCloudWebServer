@@ -3,6 +3,7 @@ import {Layout, Menu, Button, Typography, Table, Form, FormInstance, Popconfirm}
 import {getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
+import moment from 'moment';
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -71,21 +72,20 @@ const DatabaseManager = () => {
             const row = (await form.validateFields()) as any;
             const newData = [...tableDatas];
             const index = newData.findIndex((item) => key === item[KeyField]);
-            // 修改
-            if (index > -1) {
+            if (key !== "" && index > -1) {
                 const item = newData[index];
                 const mergeItem = {
                     ...item,
                     ...row
                 }
                 const body = {
-                    type:1,
-                    data:mergeItem,
-                    where:{
-                        [KeyField]:key
+                    type: 1,
+                    data: mergeItem,
+                    where: {
+                        [KeyField]: key
                     }
                 }
-                const data = await saveTableData(selectedTable,body)
+                const data = await saveTableData(selectedTable, body)
                 console.log(data)
                 // 合并
                 newData.splice(index, 1, mergeItem);
@@ -93,9 +93,10 @@ const DatabaseManager = () => {
                 setEditingKey('');
             } else {
                 const body = {
-                    type:0,
-                    data:row,
+                    type: 0,
+                    data: row,
                 }
+                const data = await saveTableData(selectedTable, body)
                 newData.push(row);
                 SetTableDatas(newData);
                 setEditingKey('');
@@ -138,9 +139,6 @@ const DatabaseManager = () => {
 
     useEffect(() => {
         if (typeof selectedTable == "string") {
-            getTableDatas(selectedTable, {}).then(res => {
-                SetTableDatas(res.data)
-            })
             getTableDetail(selectedTable).then(res => {
                 const findKey = (res.data as Array<any>).find(item => item.Key == 'PRI')
                 console.log(findKey, findKey.Field)
@@ -151,10 +149,25 @@ const DatabaseManager = () => {
                         + item.slice(1),  // 首字母大写
                     dataIndex: item,
                     key: item,
-                    editable:true,
+                    editable: true,
                 }))
                 SetTableColumns(keys)
                 SetFieldColumnsData(res.data)
+                const Filed2KeysMap = lodash.keyBy(res.data,"Field")
+                return Filed2KeysMap
+            }).then((column)=>{
+                getTableDatas(selectedTable, {}).then(res => {
+                    console.log('column',column)
+                    console.log('res.data',res.data)
+                    const tableDatas = res.data.map(item=>{
+                        for(let v in item){
+                            if(['datetime','timestamp'].includes(column[v].Type)){
+                                item[v] = moment(item[v]).format("YYYY-MM-DD HH:mm:ss")
+                            }
+                        }
+                    })
+                    SetTableDatas(res.data)
+                })
             })
         }
     }, [selectedTable])
