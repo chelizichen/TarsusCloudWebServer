@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Button, Card, Col, Divider, Row, Tabs} from 'antd';
 import {useDrag, useDrop, XYCoord} from 'react-dnd';
 import {
@@ -34,6 +34,7 @@ import CreateFileComponent from '../lowcode/CreateFileComponent';
 import {DeleteElement, GetElement, GetView, GetViews} from '../api/lowcode';
 import SpaceBetween from "../components/SpaceBetween.tsx";
 import GetDifferenceComponent from "../lowcode/GetDifferenceComponent.tsx";
+import lodash from "lodash";
 
 
 const ComponentTypes = {
@@ -514,6 +515,39 @@ function LowCodeDashBoard() {
         SetElPaginationContainers(ElPaginationData)
 
     }
+
+    const replaceUid2Component = useCallback((merge2ElementData) => {
+        for (let v in merge2ElementData) {
+            const outItem = merge2ElementData[v];
+            const keys = Object.keys(outItem);
+            for (let key of keys) {
+                if (key.endsWith("Uid") && key != "uid" && key != "fileUid") {
+                    const keyUid = outItem[key];
+                    outItem[key] = merge2ElementData[keyUid];
+                }
+            }
+        }
+    }, [])
+
+    const ExportToJSON = async () => {
+        const TableElementData = await GetElement(fileUid, ElementPosition.Table)
+        const TopElementData = await GetElement(fileUid, ElementPosition.Top)
+        TableElementData.data.forEach((item) => {
+            item.isTable = true
+        })
+        TopElementData.data.forEach((item) => {
+            item.isTop = true
+        })
+        const key2TableElementData = lodash.keyBy(TableElementData.data, "uid")
+        const key2TopElementData = lodash.keyBy(TopElementData.data, "uid")
+        const merge2ElementData = Object.assign({}, key2TopElementData, key2TableElementData)
+        for (let v in merge2ElementData) {
+            delete merge2ElementData[v].uid
+            delete merge2ElementData[v].fileUid
+        }
+        replaceUid2Component(merge2ElementData)
+        console.log(merge2ElementData)
+    }
     return (
         <Row gutter={24}>
             <Col span={4}>
@@ -546,7 +580,12 @@ function LowCodeDashBoard() {
                     style={{minHeight: '800px'}}
                     bodyStyle={{border: '1px dashed #ccc'}}
                     ref={drop}
-                    extra={<Button onClick={() => SetIsCreateFileOpen(true)} type={'link'}>创建组件</Button>}
+                    extra={
+                        <div>
+                            <Button onClick={() => SetIsCreateFileOpen(true)} type={'link'}>创建组件</Button>
+                            <Button onClick={() => ExportToJSON(true)} type={'link'}>导出为JSON</Button>
+                        </div>
+                    }
                 >
                     {/*顶部 包含按钮等*/}
                     <div style={{
