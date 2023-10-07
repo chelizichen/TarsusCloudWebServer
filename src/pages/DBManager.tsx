@@ -1,11 +1,25 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Layout, Menu, Button, Typography, Table, Form, FormInstance, Popconfirm, Modal, message} from 'antd';
+import {
+    Layout,
+    Menu,
+    Button,
+    Typography,
+    Table,
+    Form,
+    FormInstance,
+    Popconfirm,
+    Modal,
+    message,
+    Select,
+    Input
+} from 'antd';
 import {deleteTableData, getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
 import {uid} from "uid";
 import ExportToExcelButton from "../dbmanager/ExportToExcelButton.tsx";
+import CreateTable from "../dbmanager/CreateTable.tsx";
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -14,7 +28,6 @@ const {Sider, Content} = Layout;
 const DatabaseManager = () => {
     const [selectedTable, setSelectedTable] = useState(null);
     const [viewMode, setViewMode] = useState('DATA'); // or 'STRUCT'
-
     const [myTables, SetTables] = useState([])
     const [tableDatas, SetTableDatas] = useState([])
     const [tableColumns, SetTableColumns] = useState([])
@@ -50,10 +63,12 @@ const DatabaseManager = () => {
           </span>
             ) : (
                 <>
-                    <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)} style={{marginRight:"10px"}}>
+                    <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}
+                                     style={{marginRight: "10px"}}>
                         Edit
                     </Typography.Link>
-                    <Typography.Link disabled={editingKey !== ''} onClick={() => deleteRecord(record)} style={{color:"red"}}>
+                    <Typography.Link disabled={editingKey !== ''} onClick={() => deleteRecord(record)}
+                                     style={{color: "red"}}>
                         Delete
                     </Typography.Link>
                 </>
@@ -73,7 +88,7 @@ const DatabaseManager = () => {
         setEditingKey(record[KeyField]);
     };
 
-    const deleteRecord = (record:any)=>{
+    const deleteRecord = (record: any) => {
         const KeyFieldVal = record[KeyField]
         Modal.confirm({
             title: '删除确认',
@@ -82,16 +97,16 @@ const DatabaseManager = () => {
             cancelText: '取消',
             onOk: async () => {
                 // 执行删除操作
-                const ret = await deleteTableData(selectedTable,{
-                    [KeyField]:KeyFieldVal
+                const ret = await deleteTableData(selectedTable, {
+                    [KeyField]: KeyFieldVal
                 })
-                if(ret.code){
+                if (ret.code) {
                     message.error("删除失败")
                     return
                 }
-                const index = tableDatas.findIndex(item=>item[KeyField] === KeyFieldVal)
+                const index = tableDatas.findIndex(item => item[KeyField] === KeyFieldVal)
                 const newData = [...tableDatas];
-                newData.splice(index,1)
+                newData.splice(index, 1)
                 SetTableDatas(newData)
                 message.success(`数据 KEY ${KeyField} ${KeyFieldVal} 已成功删除`);
             },
@@ -235,13 +250,52 @@ const DatabaseManager = () => {
         };
     });
 
+    const switchView = () => {
+        if (viewMode === 'DATA') {
+            return (<div>
+                <Button onClick={handleRecordAdd} type="primary" style={{marginBottom: 16}}>
+                    Add a row
+                </Button>
+                <Form form={form} component={false}>
+                    <Table dataSource={tableDatas}
+                           columns={[...mergedColumns, OperateColumn]}
+                           rowSelection={{
+                               type: "checkbox",
+                               ...rowSelection,
+                           }}
+                           components={components}
+                           rowClassName="editable-row"
+                           bordered
+                    />
+                </Form>
+            </div>)
+        }
+        if (viewMode === "STRUCT") {
+            return (
+                <div>
+                    <Table dataSource={fieldColumnsData} columns={fieldsColumns}/>
+                </div>
+            )
+        }
+        if (viewMode === "CREATETABLE") {
+            return (
+                <CreateTable></CreateTable>
+            )
+        }
+    }
 
     return (
         <Layout style={{height: '100vh'}}>
             <Sider width={200} style={{backgroundColor: 'white'}}>
                 <Menu mode="inline" defaultSelectedKeys={['1']}>
+                    <Menu.Item>
+                        <Button type={"link"} onClick={() => setViewMode("CREATETABLE")}> Create Table </Button>
+                    </Menu.Item>
                     {myTables.map(table => (
-                        <Menu.Item key={table} onClick={() => setSelectedTable(table)}>
+                        <Menu.Item key={table} onClick={() => {
+                            setSelectedTable(table)
+                            setViewMode("DATA")
+                        }}>
                             {table}
                         </Menu.Item>
                     ))}
@@ -249,7 +303,7 @@ const DatabaseManager = () => {
             </Sider>
             <Layout>
                 <Content style={{padding: '20px'}}>
-                    {selectedTable && (
+                    {viewMode != "CREATETABLE" && (
                         <div>
                             <Title level={3}>{selectedTable}</Title>
                             <Button type={viewMode === 'DATA' ? 'primary' : 'default'}
@@ -265,34 +319,11 @@ const DatabaseManager = () => {
                                 columns={[...mergedColumns, OperateColumn]}
                                 fileName={selectedTable}
                             />
-
-                            <div style={{marginTop: '20px'}}>
-                                {viewMode === 'DATA' ? (
-                                    <div>
-                                        <Button onClick={handleRecordAdd} type="primary" style={{marginBottom: 16}}>
-                                            Add a row
-                                        </Button>
-                                        <Form form={form} component={false}>
-                                            <Table dataSource={tableDatas}
-                                                   columns={[...mergedColumns, OperateColumn]}
-                                                   rowSelection={{
-                                                       type: "checkbox",
-                                                       ...rowSelection,
-                                                   }}
-                                                   components={components}
-                                                   rowClassName="editable-row"
-                                                   bordered
-                                            />
-                                        </Form>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <Table dataSource={fieldColumnsData} columns={fieldsColumns}/>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     )}
+                    <div style={{marginTop: '20px'}}>
+                        {switchView()}
+                    </div>
                 </Content>
             </Layout>
         </Layout>
