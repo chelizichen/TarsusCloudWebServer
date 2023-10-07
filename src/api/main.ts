@@ -238,3 +238,11 @@ export async function deleteTableData(tableName,data){
         params
     })
 }
+
+export async function createTable(data){
+    return request({
+        url: "/main/db/create_table",
+        method: "post",
+        data,
+    })
+}

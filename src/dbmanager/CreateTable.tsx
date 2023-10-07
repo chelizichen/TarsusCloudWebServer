@@ -1,8 +1,21 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Input, Select, Button, Table, Space} from 'antd';
+import {useLocation} from "react-router-dom";
+import {createTable} from "../api/main";
 
 const {Option} = Select;
 
+/**
+ * todo {
+ *     缺少小数点
+ *     虚拟键
+ *     主键
+ *     备注
+ *     填充零
+ *     无符号
+ *     自动递增
+ * }
+ * */
 const CreateTable = () => {
     const [tableName, setTableName] = useState('');
     const [fieldName, setFieldName] = useState('');
@@ -10,8 +23,14 @@ const CreateTable = () => {
     const [fieldLength, setFieldLength] = useState('');
     const [allowNull, setAllowNull] = useState(true);
     const [fields, setFields] = useState([]);
-
     const [GenerateSql,SetGeneRateSql] = useState('')
+    const location = useLocation()
+    const [prefix,SetPrefix] = useState("")
+    useEffect(()=>{
+        const search = new URLSearchParams(location.search)
+        const dir = search.get("dir");
+        SetPrefix(dir)
+    },[location])
     const addField = () => {
         if (fieldName && fieldType) {
             const newField = {
@@ -71,7 +90,7 @@ const CreateTable = () => {
             return null;
         }
 
-        let sql = `CREATE TABLE ${tableName} ( \n`;
+        let sql = `CREATE TABLE ${prefix}_${tableName} ( \n`;
 
         for (let i = 0; i < fields.length; i++) {
             const field = fields[i];
@@ -93,6 +112,10 @@ const CreateTable = () => {
         return sql;
     }
 
+    const CreateTableRequest = async ()=>{
+        const data = await createTable({createSql:GenerateSql})
+        console.log(data)
+    }
     return (
         <div>
             <h1>Create Table</h1>
@@ -172,7 +195,8 @@ const CreateTable = () => {
                 <Table dataSource={fields} columns={columns}/>
             </div>
             <div style={{marginTop:"20px"}}>
-                <Button type="primary" onClick={() => generateCreateTableSQL(fields, tableName)}>Save Table</Button>
+                <Button type="text" onClick={() => generateCreateTableSQL(fields, tableName)}>Generate Table SQL</Button>
+                <Button type="primary" onClick={() => CreateTableRequest()}>Create TABLE</Button>
             </div>
             <div style={{padding:"20px",width:"80vw",height:"400px",backgroundColor:"white",marginTop:'20px'}}>
                 <Input.TextArea  style={{height:"300px"}} value={GenerateSql}></Input.TextArea>
