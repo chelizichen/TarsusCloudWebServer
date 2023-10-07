@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Input, Select, Button, Table, Space} from 'antd';
 
 const {Option} = Select;
@@ -11,6 +11,7 @@ const CreateTable = () => {
     const [allowNull, setAllowNull] = useState(true);
     const [fields, setFields] = useState([]);
 
+    const [GenerateSql,SetGeneRateSql] = useState('')
     const addField = () => {
         if (fieldName && fieldType) {
             const newField = {
@@ -65,11 +66,38 @@ const CreateTable = () => {
         },
     ];
 
+    const generateCreateTableSQL = (fields, tableName) => {
+        if (!fields || fields.length === 0 || !tableName) {
+            return null;
+        }
+
+        let sql = `CREATE TABLE ${tableName} ( \n`;
+
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const fieldName = field.name;
+            const fieldType = field.type;
+            const fieldLength = field.length ? `(${field.length})` : '';
+            const allowNull = field.allowNull ? 'NULL' : 'NOT NULL';
+
+            sql += `      ${fieldName} ${fieldType}${fieldLength} ${allowNull} `;
+
+            // Add a comma if it's not the last field
+            if (i < fields.length - 1) {
+                sql += ', \n';
+            }
+        }
+
+        sql += '\n);';
+        SetGeneRateSql(sql)
+        return sql;
+    }
+
     return (
         <div>
             <h1>Create Table</h1>
             <div>
-                <label>Table Name:</label>
+                <h2>Table Name:</h2>
                 <Input
                     value={tableName}
                     onChange={(e) => setTableName(e.target.value)}
@@ -95,9 +123,26 @@ const CreateTable = () => {
                         onChange={(value) => setFieldType(value)}
 
                     >
-                        <Option value="string">String</Option>
-                        <Option value="number">Number</Option>
-                        <Option value="boolean">Boolean</Option>
+                        <Option value="INT">INT</Option>
+                        <Option value="TINYINT">TINYINT</Option>
+                        <Option value="SMALLINT">SMALLINT</Option>
+                        <Option value="BIGINT">BIGINT</Option>
+                        <Option value="FLOAT">FLOAT</Option>
+                        <Option value="DOUBLE">DOUBLE</Option>
+                        <Option value="DECIMAL">DECIMAL</Option>
+                        <Option value="CHAR">CHAR</Option>
+                        <Option value="VARCHAR">VARCHAR</Option>
+                        <Option value="TEXT">TEXT</Option>
+                        <Option value="DATE">DATE</Option>
+                        <Option value="TIME">TIME</Option>
+                        <Option value="DATETIME">DATETIME</Option>
+                        <Option value="TIMESTAMP">TIMESTAMP</Option>
+                        <Option value="YEAR">YEAR</Option>
+                        <Option value="BOOLEAN">BOOLEAN</Option>
+                        <Option value="ENUM">ENUM</Option>
+                        <Option value="SET">SET</Option>
+                        <Option value="BLOB">BLOB</Option>
+                        <Option value="JSON">JSON</Option>
                     </Select>
                 </div>
                 <div>
@@ -126,8 +171,11 @@ const CreateTable = () => {
                 <h2>Table Fields</h2>
                 <Table dataSource={fields} columns={columns}/>
             </div>
-            <div>
-                <Button type="primary">Save Table</Button>
+            <div style={{marginTop:"20px"}}>
+                <Button type="primary" onClick={() => generateCreateTableSQL(fields, tableName)}>Save Table</Button>
+            </div>
+            <div style={{padding:"20px",width:"80vw",height:"400px",backgroundColor:"white",marginTop:'20px'}}>
+                <Input.TextArea  style={{height:"300px"}} value={GenerateSql}></Input.TextArea>
             </div>
         </div>
     );
