@@ -4,6 +4,7 @@ import {getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
+import {uid} from "uid";
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -96,6 +97,7 @@ const DatabaseManager = () => {
                     type: 0,
                     data: row,
                 }
+                delete row[KeyField]
                 const data = await saveTableData(selectedTable, body)
                 newData.push(row);
                 SetTableDatas(newData);
@@ -128,11 +130,16 @@ const DatabaseManager = () => {
         }),
     };
 
+    // 不允许自定义 PRI KEY 的值
     const handleRecordAdd = () => {
         const newData = lodash.cloneDeep(tableDatas[0]);
         for (let k in newData) {
             newData[k] = ""
         }
+        let key = uid()
+        newData[KeyField] = key
+        setEditingKey(key)
+        form.setFieldsValue({...newData})
         SetTableDatas([newData, ...tableDatas]);
     };
 
@@ -153,15 +160,15 @@ const DatabaseManager = () => {
                 }))
                 SetTableColumns(keys)
                 SetFieldColumnsData(res.data)
-                const Filed2KeysMap = lodash.keyBy(res.data,"Field")
+                const Filed2KeysMap = lodash.keyBy(res.data, "Field")
                 return Filed2KeysMap
-            }).then((column)=>{
+            }).then((column) => {
                 getTableDatas(selectedTable, {}).then(res => {
-                    console.log('column',column)
-                    console.log('res.data',res.data)
-                    const tableDatas = res.data.map(item=>{
-                        for(let v in item){
-                            if(['datetime','timestamp'].includes(column[v].Type)){
+                    console.log('column', column)
+                    console.log('res.data', res.data)
+                    const tableDatas = res.data.map(item => {
+                        for (let v in item) {
+                            if (['datetime', 'timestamp'].includes(column[v].Type)) {
                                 item[v] = moment(item[v]).format("YYYY-MM-DD HH:mm:ss")
                             }
                         }
