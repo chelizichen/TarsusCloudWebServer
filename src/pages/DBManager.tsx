@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Layout, Menu, Button, Typography, Table, Form, FormInstance, Popconfirm} from 'antd';
-import {getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api/main.ts";
+import {Layout, Menu, Button, Typography, Table, Form, FormInstance, Popconfirm, Modal, message} from 'antd';
+import {deleteTableData, getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
@@ -8,8 +8,6 @@ import {uid} from "uid";
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
-
-const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 
 const DatabaseManager = () => {
@@ -50,9 +48,14 @@ const DatabaseManager = () => {
             </Popconfirm>
           </span>
             ) : (
-                <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
-                    Edit
-                </Typography.Link>
+                <>
+                    <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)} style={{marginRight:"10px"}}>
+                        Edit
+                    </Typography.Link>
+                    <Typography.Link disabled={editingKey !== ''} onClick={() => deleteRecord(record)} style={{color:"red"}}>
+                        Delete
+                    </Typography.Link>
+                </>
             );
         },
     }
@@ -68,12 +71,42 @@ const DatabaseManager = () => {
         form.setFieldsValue({...record});
         setEditingKey(record[KeyField]);
     };
+
+    const deleteRecord = (record:any)=>{
+        const KeyFieldVal = record[KeyField]
+        Modal.confirm({
+            title: '删除确认',
+            content: '确定要删除这条数据吗？',
+            okText: '确定',
+            cancelText: '取消',
+            onOk: async () => {
+                // 执行删除操作
+                const ret = await deleteTableData(selectedTable,{
+                    [KeyField]:KeyFieldVal
+                })
+                if(ret.code){
+                    message.error("删除失败")
+                    return
+                }
+                const index = tableDatas.findIndex(item=>item[KeyField] === KeyFieldVal)
+                const newData = [...tableDatas];
+                newData.splice(index,1)
+                SetTableDatas(newData)
+                message.success(`数据 KEY ${KeyField} ${KeyFieldVal} 已成功删除`);
+            },
+            onCancel: () => {
+                message.error('删除操作已取消');
+            },
+        });
+    }
+
     const save = async (key: any) => {
         try {
             const row = (await form.validateFields()) as any;
             const newData = [...tableDatas];
-            const index = newData.findIndex((item) => key === item[KeyField]);
-            if (key !== "" && index > -1) {
+            // id必须唯一，给UID的理由是确定行
+            const index = newData.findIndex((item) => item[KeyField] === form.getFieldValue(KeyField));
+            if (index > -1) {
                 const item = newData[index];
                 const mergeItem = {
                     ...item,

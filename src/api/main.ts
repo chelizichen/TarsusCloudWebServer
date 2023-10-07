@@ -228,3 +228,13 @@ export async function saveTableData(tableName:string,data) {
         data
     })
 }
+
+export async function deleteTableData(tableName,data){
+    const params = {tableName};
+    return request({
+        url: "/main/db/delete",
+        method: "post",
+        data,
+        params
+    })
+}
