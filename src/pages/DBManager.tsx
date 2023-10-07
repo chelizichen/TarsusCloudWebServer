@@ -5,6 +5,7 @@ import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
 import {uid} from "uid";
+import ExportToExcelButton from "../dbmanager/ExportToExcelButton.tsx";
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -259,6 +260,11 @@ const DatabaseManager = () => {
                                     onClick={() => setViewMode('STRUCT')}>
                                 STRUCT
                             </Button>
+                            <ExportToExcelButton
+                                dataSource={tableDatas}
+                                columns={[...mergedColumns, OperateColumn]}
+                                fileName={selectedTable}
+                            />
 
                             <div style={{marginTop: '20px'}}>
                                 {viewMode === 'DATA' ? (
