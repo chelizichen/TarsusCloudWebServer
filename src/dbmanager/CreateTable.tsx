@@ -1,8 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Input, Select, Button, Table, Space, message} from 'antd';
+import {Input, Select, Button, Table, Space, message, Checkbox} from 'antd';
 import {useLocation} from "react-router-dom";
 import {createTable} from "../api/main";
 import {uid} from "uid";
+import {KeyOutlined, BoxPlotOutlined} from '@ant-design/icons'
 
 const {Option} = Select;
 
@@ -25,14 +26,16 @@ const CreateTable = () => {
     const [allowNull, setAllowNull] = useState(true);
     const [isPrimary, serIsPrimary] = useState(false);
     const [fields, setFields] = useState([]);
-    const [GenerateSql,SetGeneRateSql] = useState('')
+    const [GenerateSql, SetGeneRateSql] = useState('')
     const location = useLocation()
-    const [prefix,SetPrefix] = useState("")
-    useEffect(()=>{
+    const [prefix, SetPrefix] = useState("")
+    const [selectedFieldOptions, setSelectedFieldOptions] = useState([]);
+
+    useEffect(() => {
         const search = new URLSearchParams(location.search)
         const dir = search.get("dir");
         SetPrefix(dir)
-    },[location])
+    }, [location])
     const addField = () => {
         if (fieldName && fieldType) {
             const newField = {
@@ -41,12 +44,14 @@ const CreateTable = () => {
                 length: fieldLength,
                 allowNull,
                 isPrimary,
-                key:uid()
+                key: uid(),
+                fieldOptions: selectedFieldOptions
             };
             setFields([...fields, newField]);
             setFieldName('');
             setFieldType('');
             setFieldLength('');
+            setSelectedFieldOptions([])
         }
     };
 
@@ -79,6 +84,20 @@ const CreateTable = () => {
             render: (allowNull) => allowNull ? 'Yes' : 'No',
         },
         {
+            title: 'Is Primary',
+            dataIndex: 'isPrimary',
+            key: 'isPrimary',
+            render: (isPrimary) => isPrimary ? <KeyOutlined style={{color: "gold", fontWeight: "900"}}/> : 'No',
+        },
+        {
+            title: 'Field Options',
+            dataIndex: 'fieldOptions',
+            key: 'fieldOptions',
+            render: (options) => (
+                <Checkbox.Group options={fieldOptions} defaultValue={options} disabled={true}/>
+            )
+        },
+        {
             title: 'Action',
             key: 'action',
             render: (_, record, index) => (
@@ -104,10 +123,9 @@ const CreateTable = () => {
             const fieldType = field.type;
             const fieldLength = field.length ? `(${field.length})` : '';
             const allowNull = field.allowNull ? 'NULL' : 'NOT NULL';
-
-            sql += `      ${fieldName} ${fieldType}${fieldLength} ${allowNull} `;
-
-            if(field.isPrimary){
+            const fieldOptions = field.fieldOptions || []
+            sql += `      ${fieldName} ${fieldType}${fieldLength} ${allowNull} ${fieldOptions.join(" ")}`;
+            if (field.isPrimary) {
                 primary_keys.push(field.name)
             }
             // Add a comma if it's not the last field
@@ -116,23 +134,33 @@ const CreateTable = () => {
             }
         }
 
-        if(!primary_keys.length){
+        if (!primary_keys.length) {
             message.error("error:该表必须包含主键")
             return
         }
-        sql += `, \n      PRIMARY KEY (${primary_keys.join(",")})`
+        sql += `, \n      PRIMARY KEY (${primary_keys.map(item => '`' + item + '`').join(",")})`
 
         sql += '\n);';
         SetGeneRateSql(sql)
         return sql;
     }
 
-    const CreateTableRequest = async ()=>{
-        const data = await createTable({createSql:GenerateSql})
+    const CreateTableRequest = async () => {
+        const data = await createTable({createSql: GenerateSql})
         console.log(data)
     }
     const filterOption = (inputValue, option) => {
         return option.props.children.toLowerCase().includes(inputValue.toLowerCase());
+    };
+
+    const fieldOptions = [
+        {label: 'Auto Increment', value: 'AUTO_INCREMENT'},
+        {label: 'Unsigned', value: 'UNSIGNED'},
+        {label: 'Zero Fill', value: 'ZEROFILL'},
+    ];
+
+    const fieldOptionChange = (checkedValues: any[]) => {
+        setSelectedFieldOptions(checkedValues);
     };
 
     return (
@@ -146,7 +174,7 @@ const CreateTable = () => {
                 />
             </div>
             <h2>Add Field</h2>
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-around'}}>
+            <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around'}}>
                 <div>
                     <label>FieldName : &nbsp;</label>
                     <Input
@@ -220,18 +248,24 @@ const CreateTable = () => {
                         <Option value={false}>No</Option>
                     </Select>
                 </div>
+                <div>
+                    <label>Options : </label>
+                    <Checkbox.Group options={fieldOptions} onChange={fieldOptionChange} value={selectedFieldOptions}
+                                    style={{width: "200px"}}/>
+                </div>
                 <Button type="primary" onClick={addField}>Add Field</Button>
             </div>
             <div>
                 <h2>Table Fields</h2>
                 <Table dataSource={fields} columns={columns} bordered={true}/>
             </div>
-            <div style={{marginTop:"20px"}}>
-                <Button type="text" onClick={() => generateCreateTableSQL(fields, tableName)}>Generate Table SQL</Button>
+            <div style={{marginTop: "20px"}}>
+                <Button type="primary" onClick={() => generateCreateTableSQL(fields, tableName)}
+                        style={{marginRight: "20px"}}>Generate Table SQL</Button>
                 <Button type="primary" onClick={() => CreateTableRequest()}>Create TABLE</Button>
             </div>
-            <div style={{padding:"20px",width:"80vw",height:"400px",backgroundColor:"white",marginTop:'20px'}}>
-                <Input.TextArea  style={{height:"300px"}} value={GenerateSql}></Input.TextArea>
+            <div style={{padding: "20px", width: "80vw", height: "400px", backgroundColor: "white", marginTop: '20px'}}>
+                <Input.TextArea style={{height: "300px"}} value={GenerateSql}></Input.TextArea>
             </div>
         </div>
     );
