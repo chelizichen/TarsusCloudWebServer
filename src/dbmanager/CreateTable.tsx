@@ -1,7 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Input, Select, Button, Table, Space} from 'antd';
+import {Input, Select, Button, Table, Space, message} from 'antd';
 import {useLocation} from "react-router-dom";
 import {createTable} from "../api/main";
+import {uid} from "uid";
 
 const {Option} = Select;
 
@@ -22,6 +23,7 @@ const CreateTable = () => {
     const [fieldType, setFieldType] = useState('');
     const [fieldLength, setFieldLength] = useState('');
     const [allowNull, setAllowNull] = useState(true);
+    const [isPrimary, serIsPrimary] = useState(false);
     const [fields, setFields] = useState([]);
     const [GenerateSql,SetGeneRateSql] = useState('')
     const location = useLocation()
@@ -38,6 +40,8 @@ const CreateTable = () => {
                 type: fieldType,
                 length: fieldLength,
                 allowNull,
+                isPrimary,
+                key:uid()
             };
             setFields([...fields, newField]);
             setFieldName('');
@@ -92,6 +96,8 @@ const CreateTable = () => {
 
         let sql = `CREATE TABLE ${prefix}_${tableName} ( \n`;
 
+        let primary_keys = []
+
         for (let i = 0; i < fields.length; i++) {
             const field = fields[i];
             const fieldName = field.name;
@@ -101,11 +107,20 @@ const CreateTable = () => {
 
             sql += `      ${fieldName} ${fieldType}${fieldLength} ${allowNull} `;
 
+            if(field.isPrimary){
+                primary_keys.push(field.name)
+            }
             // Add a comma if it's not the last field
             if (i < fields.length - 1) {
                 sql += ', \n';
             }
         }
+
+        if(!primary_keys.length){
+            message.error("error:该表必须包含主键")
+            return
+        }
+        sql += `, \n      PRIMARY KEY (${primary_keys.join(",")})`
 
         sql += '\n);';
         SetGeneRateSql(sql)
@@ -116,6 +131,10 @@ const CreateTable = () => {
         const data = await createTable({createSql:GenerateSql})
         console.log(data)
     }
+    const filterOption = (inputValue, option) => {
+        return option.props.children.toLowerCase().includes(inputValue.toLowerCase());
+    };
+
     return (
         <div>
             <h1>Create Table</h1>
@@ -140,11 +159,13 @@ const CreateTable = () => {
                 <div>
                     <label>DataType : &nbsp;</label>
                     <Select
+                        showSearch
                         placeholder="Data Type"
                         style={{width: 200}}
                         value={fieldType}
                         onChange={(value) => setFieldType(value)}
-
+                        optionFilterProp="children" // 指定搜索的属性
+                        filterOption={filterOption} // 自定义搜索逻辑
                     >
                         <Option value="INT">INT</Option>
                         <Option value="TINYINT">TINYINT</Option>
@@ -188,11 +209,22 @@ const CreateTable = () => {
                         <Option value={false}>No</Option>
                     </Select>
                 </div>
+                <div>
+                    <label>Primary : &nbsp;</label>
+                    <Select
+                        style={{width: 120}}
+                        value={isPrimary}
+                        onChange={(value) => serIsPrimary(value)}
+                    >
+                        <Option value={true}>Yes</Option>
+                        <Option value={false}>No</Option>
+                    </Select>
+                </div>
                 <Button type="primary" onClick={addField}>Add Field</Button>
             </div>
             <div>
                 <h2>Table Fields</h2>
-                <Table dataSource={fields} columns={columns}/>
+                <Table dataSource={fields} columns={columns} bordered={true}/>
             </div>
             <div style={{marginTop:"20px"}}>
                 <Button type="text" onClick={() => generateCreateTableSQL(fields, tableName)}>Generate Table SQL</Button>
