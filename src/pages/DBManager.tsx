@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {PropertySafetyOutlined, RadiusUprightOutlined, TableOutlined, TabletTwoTone} from '@ant-design/icons';
 import {
     Layout,
     Menu,
@@ -20,6 +21,7 @@ import moment from 'moment';
 import {uid} from "uid";
 import ExportToExcelButton from "../dbmanager/ExportToExcelButton.tsx";
 import CreateTable from "../dbmanager/CreateTable.tsx";
+import SpaceBetween from "../components/SpaceBetween.tsx";
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -266,6 +268,9 @@ const DatabaseManager = () => {
                            components={components}
                            rowClassName="editable-row"
                            bordered
+                           pagination={{
+                               showTotal: (total, range) => <span>共{total}条</span>
+                           }}
                     />
                 </Form>
             </div>)
@@ -284,6 +289,42 @@ const DatabaseManager = () => {
         }
     }
 
+    const PreviewCreate = () => {
+        if (!selectedTable || !fieldColumnsData || fieldColumnsData.length === 0) {
+            return null;
+        }
+
+        let sql = `CREATE TABLE ${selectedTable} (\n`;
+
+        for (let i = 0; i < fieldColumnsData.length; i++) {
+            const field = fieldColumnsData[i];
+            const fieldName = field.Field;
+            const fieldType = field.Type;
+            const allowNull = field.Null === 'YES' ? 'NULL' : 'NOT NULL';
+            const primaryKey = field.Key === 'PRI' ? 'PRIMARY KEY' : '';
+            const defaultValue = field.Default !== null ? `DEFAULT ${field.Default}` : '';
+            const extra = field.Extra ? field.Extra : '';
+
+            sql += `  ${fieldName} ${fieldType} ${allowNull} ${primaryKey} ${defaultValue} ${extra}`;
+
+            // Add a comma if it's not the last field
+            if (i < fieldColumnsData.length - 1) {
+                sql += ',\n';
+            }
+        }
+
+        sql += '\n);';
+
+        Modal.confirm({
+            title: "CREATE SQL",
+            content: <Input.TextArea value={sql} style={{height: "300px"}}/>,
+            cancelText: "取消",
+            closable: true,
+            width: 600,
+            icon: <RadiusUprightOutlined/>
+        })
+    }
+
     return (
         <Layout style={{height: '100vh'}}>
             <Sider width={200} style={{backgroundColor: 'white'}}>
@@ -291,12 +332,33 @@ const DatabaseManager = () => {
                     <Menu.Item>
                         <Button type={"link"} onClick={() => setViewMode("CREATETABLE")}> Create Table </Button>
                     </Menu.Item>
-                    {myTables.map(table => (
+                    {myTables.map((table,index) => (
+
                         <Menu.Item key={table} onClick={() => {
                             setSelectedTable(table)
                             setViewMode("DATA")
                         }}>
-                            {table}
+                            <SpaceBetween>
+                                <div style={{width:"80%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",wordWrap:"break-word"}}>
+                                    {table}
+                                </div>
+                                <div>
+                                    <Popconfirm
+                                        placement="topRight"
+                                        title={'[table] '+ table}
+                                        description={
+                                            <div>
+                                                <Button style={{margin:"5px"}}>复制表</Button>
+                                                <Button style={{margin:"5px"}}>复制表+数据</Button>
+                                            </div>
+                                        }
+                                        okText="Yes"
+                                        cancelText="No"
+                                    >
+                                        <TableOutlined></TableOutlined>
+                                    </Popconfirm>
+                                </div>
+                            </SpaceBetween>
                         </Menu.Item>
                     ))}
                 </Menu>
@@ -313,6 +375,9 @@ const DatabaseManager = () => {
                             <Button type={viewMode === 'STRUCT' ? 'primary' : 'default'}
                                     onClick={() => setViewMode('STRUCT')}>
                                 STRUCT
+                            </Button>
+                            <Button type={"dashed"} onClick={() => PreviewCreate()} style={{marginLeft: "10px"}}>
+                                PREVIEW
                             </Button>
                             <ExportToExcelButton
                                 dataSource={tableDatas}
