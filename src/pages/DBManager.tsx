@@ -327,7 +327,11 @@ const DatabaseManager = () => {
 
     return (
         <Layout style={{height: '100vh'}}>
-            <Sider width={200} style={{backgroundColor: 'white'}}>
+            <Sider width={200} style={{
+                backgroundColor: 'white',
+                overflow: 'auto',
+                height: '100vh',
+        }}>
                 <Menu mode="inline" defaultSelectedKeys={['1']}>
                     <Menu.Item>
                         <Button type={"link"} onClick={() => setViewMode("CREATETABLE")}> Create Table </Button>
