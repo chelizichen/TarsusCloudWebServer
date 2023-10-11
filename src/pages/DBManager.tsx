@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {PropertySafetyOutlined, RadiusUprightOutlined, TableOutlined, TabletTwoTone} from '@ant-design/icons';
+import {RadiusUprightOutlined, TableOutlined,ReadOutlined } from '@ant-design/icons';
 import {
     Layout,
     Menu,
@@ -13,9 +13,10 @@ import {
     message,
     Select,
     Input,
-    Drawer
+    Drawer,
+    Spin
 } from 'antd';
-import {deleteTableData, getDatabases, getTableDatas, getTableDetail, saveTableData, showDatabases} from "../api/main.ts";
+import {deleteTableData, getDatabaseTables, getTableDatas, getTableDetail, resetDatabase, saveTableData, showDatabases} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
@@ -23,19 +24,21 @@ import {uid} from "uid";
 import ExportToExcelButton from "../dbmanager/ExportToExcelButton.tsx";
 import CreateTable from "../dbmanager/CreateTable.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
+import FlexStart from '../components/FlexStart.tsx';
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
 
 
 const DatabaseManager = () => {
+    const [loading, setLoading] = useState(true);
+
     const [selectedTable, setSelectedTable] = useState(null);
     const [viewMode, setViewMode] = useState('DATA'); // or 'STRUCT'
     const [myTables, SetTables] = useState([])
     const [tableDatas, SetTableDatas] = useState([])
     const [tableColumns, SetTableColumns] = useState([])
     const [fieldColumnsData, SetFieldColumnsData] = useState([])
-
     const fieldsColumns = lodash.keys({
         "Field": "id",
         "Type": "int",
@@ -167,7 +170,7 @@ const DatabaseManager = () => {
 
 
     useEffect(() => {
-        getDatabases({}).then(res => {
+        getDatabaseTables({}).then(res => {
             SetTables(res.data)
         })
     }, []);
@@ -195,6 +198,24 @@ const DatabaseManager = () => {
         SetTableDatas([newData, ...tableDatas]);
     };
 
+    const Refresh = () => {
+        setLoading(true)
+        const column = lodash.keyBy(fieldColumnsData, "Field")
+        getTableDatas(selectedTable, {}).then(res => {
+            res.data.forEach(item => {
+                for (let v in item) {
+                    if (['datetime', 'timestamp'].includes(column[v].Type)) {
+                        item[v] = moment(item[v]).format("YYYY-MM-DD HH:mm:ss")
+                    }
+                }
+            })
+            SetTableDatas(res.data)
+            setTimeout(()=>{
+                setLoading(false)
+            },500)
+        })
+    }
+
 
     useEffect(() => {
         if (typeof selectedTable == "string") {
@@ -216,9 +237,7 @@ const DatabaseManager = () => {
                 return Filed2KeysMap
             }).then((column) => {
                 getTableDatas(selectedTable, {}).then(res => {
-                    console.log('column', column)
-                    console.log('res.data', res.data)
-                    const tableDatas = res.data.map(item => {
+                    res.data.forEach(item => {
                         for (let v in item) {
                             if (['datetime', 'timestamp'].includes(column[v].Type)) {
                                 item[v] = moment(item[v]).format("YYYY-MM-DD HH:mm:ss")
@@ -226,6 +245,7 @@ const DatabaseManager = () => {
                         }
                     })
                     SetTableDatas(res.data)
+                    setLoading(false)
                 })
             })
         }
@@ -256,9 +276,14 @@ const DatabaseManager = () => {
     const switchView = () => {
         if (viewMode === 'DATA') {
             return (<div>
-                <Button onClick={handleRecordAdd} type="primary" style={{marginBottom: 16}}>
-                    Add a row
-                </Button>
+                <FlexStart>
+                    <Button onClick={handleRecordAdd} type="primary" style={{margin: '10px'}}>
+                        Add a row
+                    </Button>
+                    <Button onClick={Refresh} type="primary" style={{margin: '10px'}} icon={<ReadOutlined/>}>
+                        Refresh
+                    </Button>
+                </FlexStart>
                 <Form form={form} component={false}>
                     <Table dataSource={tableDatas}
                            columns={[...mergedColumns, OperateColumn]}
@@ -352,7 +377,15 @@ const DatabaseManager = () => {
         footer: {
           borderTop: `1px solid gray`,
         },
-      };
+    };
+
+    const handleResetDabase = (database) =>{
+        resetDatabase({database}).then(()=>{
+            getDatabaseTables({}).then(res => {
+                SetTables(res.data)
+            })
+        })
+    }
     return (
         <Layout style={{height: '100vh'}}>
             <Sider width={200} style={{
@@ -425,12 +458,16 @@ const DatabaseManager = () => {
                         </SpaceBetween>
                     )}
                     <div style={{marginTop: '20px'}}>
-                        {switchView()}
+                        {   
+                                <Spin spinning={loading}>
+                                    {switchView()}
+                                </Spin>
+                        }
                     </div>
                 </Content>
             </Layout>
             <Drawer
-                   title="Basic Drawer"
+                    title="Databases"
                     placement="right"
                     footer="Footer"
                     onClose={() => toggleDrawer(false)}
@@ -440,7 +477,7 @@ const DatabaseManager = () => {
                     <Menu>
                         {database.map((item,index)=>{
                             return(
-                                <Menu.Item key={item+index}> { item }</Menu.Item>
+                                <Menu.Item key={item+index} onClick={()=>handleResetDabase(item)}> { item }</Menu.Item>
                             )
                         })}
                     </Menu>

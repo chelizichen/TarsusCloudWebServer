@@ -182,7 +182,7 @@ export async function setTaroInterfaces(data:{
     })
 }
 
-export async function getDatabases(data) {
+export async function getDatabaseTables(data) {
     return request({
         url: "/main/db/tables",
         method: "post",
@@ -251,5 +251,13 @@ export async function showDatabases(){
     return request({
         url: "/main/db/show_databases",
         method: "post",
+    })
+}
+
+export async function resetDatabase(data){
+    return request({
+        url: "/main/db/reset_database",
+        method: "post",
+        data
     })
 }
