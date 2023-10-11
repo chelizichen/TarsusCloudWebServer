@@ -246,3 +246,10 @@ export async function createTable(data){
         data,
     })
 }
+
+export async function showDatabases(){
+    return request({
+        url: "/main/db/show_databases",
+        method: "post",
+    })
+}

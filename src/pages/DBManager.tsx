@@ -12,9 +12,10 @@ import {
     Modal,
     message,
     Select,
-    Input
+    Input,
+    Drawer
 } from 'antd';
-import {deleteTableData, getDatabases, getTableDatas, getTableDetail, saveTableData} from "../api/main.ts";
+import {deleteTableData, getDatabases, getTableDatas, getTableDetail, saveTableData, showDatabases} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
@@ -325,6 +326,33 @@ const DatabaseManager = () => {
         })
     }
 
+    const [open, setOpen] = useState(false);
+    const [database,setDatabases] = useState([])
+    const toggleDrawer = async (bool) => {
+        if(bool === true){
+            const data = await showDatabases() 
+            setDatabases(data.data)
+        }
+        setOpen(bool);
+    };
+
+    const drawerStyles = {
+        mask: {
+          backdropFilter: 'blur(10px)',
+        },
+        content: {
+          boxShadow: '-10px 0 10px #666',
+        },
+        header: {
+          borderBottom: `1px solid red`,
+        },
+        body: {
+          fontSize: 'large',
+        },
+        footer: {
+          borderTop: `1px solid gray`,
+        },
+      };
     return (
         <Layout style={{height: '100vh'}}>
             <Sider width={200} style={{
@@ -370,31 +398,53 @@ const DatabaseManager = () => {
             <Layout>
                 <Content style={{padding: '20px'}}>
                     {viewMode != "CREATETABLE" && (
-                        <div>
-                            <Title level={3}>{selectedTable}</Title>
-                            <Button type={viewMode === 'DATA' ? 'primary' : 'default'}
-                                    onClick={() => setViewMode('DATA')}>
-                                DATA
-                            </Button>
-                            <Button type={viewMode === 'STRUCT' ? 'primary' : 'default'}
-                                    onClick={() => setViewMode('STRUCT')}>
-                                STRUCT
-                            </Button>
-                            <Button type={"dashed"} onClick={() => PreviewCreate()} style={{marginLeft: "10px"}}>
-                                PREVIEW
-                            </Button>
-                            <ExportToExcelButton
-                                dataSource={tableDatas}
-                                columns={[...mergedColumns, OperateColumn]}
-                                fileName={selectedTable}
-                            />
-                        </div>
+                        <SpaceBetween>
+                            <div>
+                                <Title level={3}>{selectedTable}</Title>
+                                <Button type={viewMode === 'DATA' ? 'primary' : 'default'}
+                                        onClick={() => setViewMode('DATA')}>
+                                    DATA
+                                </Button>
+                                <Button type={viewMode === 'STRUCT' ? 'primary' : 'default'}
+                                        onClick={() => setViewMode('STRUCT')}>
+                                    STRUCT
+                                </Button>
+                                <Button type={"dashed"} onClick={() => PreviewCreate()} style={{marginLeft: "10px"}}>
+                                    PREVIEW
+                                </Button>
+                               
+                            </div>
+                            <div>
+                                <ExportToExcelButton
+                                    dataSource={tableDatas}
+                                    columns={[...mergedColumns, OperateColumn]}
+                                    fileName={selectedTable}
+                                />
+                                <Button type={"primary"} style={{margin:'0 5px'}} onClick={()=>toggleDrawer(true)}>Show DATABASES</Button>
+                            </div>
+                        </SpaceBetween>
                     )}
                     <div style={{marginTop: '20px'}}>
                         {switchView()}
                     </div>
                 </Content>
             </Layout>
+            <Drawer
+                   title="Basic Drawer"
+                    placement="right"
+                    footer="Footer"
+                    onClose={() => toggleDrawer(false)}
+                    open={open}
+                    styles={drawerStyles}
+                >
+                    <Menu>
+                        {database.map((item,index)=>{
+                            return(
+                                <Menu.Item key={item+index}> { item }</Menu.Item>
+                            )
+                        })}
+                    </Menu>
+                </Drawer>
         </Layout>
     );
 }
