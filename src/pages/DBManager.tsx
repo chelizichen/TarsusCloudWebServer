@@ -323,8 +323,11 @@ const DatabaseManager = () => {
                            components={components}
                            rowClassName="editable-row"
                            bordered
+                           virtual
+                           scroll={{ x: 1000, y: 700 }}
                            pagination={{
-                               showTotal: (total, range) => <span>共{total}条</span>
+                               showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+                               pageSize:1000,
                            }}
                     />
                 </Form>
