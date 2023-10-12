@@ -26,6 +26,7 @@ import CreateTable from "../dbmanager/CreateTable.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
 import FlexStart from '../components/FlexStart.tsx';
 import AddDataSourceModal from '../dbmanager/AddDataSourceModal.tsx';
+import GetDataSourceModal from '../dbmanager/GetDataSourceModal.tsx';
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -389,7 +390,7 @@ const DatabaseManager = () => {
     }
 
     const [isAddDataSourceOpen, SetIsAddDataSourceOpen] = useState(false);
-
+    const [isSwitchDataSourceOpen, SetIsSwitchDataSourceOpen] = useState(false)
     // 这个函数将在Modal的确认按钮被点击时调用
     const handleAddDataSource = (formData) => {
       // 在这里处理添加数据源的逻辑，formData包含了表单数据
@@ -398,6 +399,13 @@ const DatabaseManager = () => {
       // 关闭Modal
       SetIsAddDataSourceOpen(false);
     };
+
+    const handleSwitchDataSourceModal = ()=>{
+        getDatabaseTables({}).then(res => {
+            SetTables(res.data)
+        })
+        SetIsSwitchDataSourceOpen(false)
+    }
 
     return (
         <Layout style={{height: '100vh'}}>
@@ -467,13 +475,13 @@ const DatabaseManager = () => {
                             <div>
                                 <Button type={"primary"} style={{margin:'0 5px'}} onClick={()=>toggleDrawer(true)}>Show DATABASES</Button>
                                 <Button type="primary" style={{margin:'0 5px',backgroundColor:'green'}} onClick={() => SetIsAddDataSourceOpen(true)}>Add DATASOURCE</Button>
-                                <Button type="primary" style={{margin:'0 5px',backgroundColor:"orange"}} onClick={() => SetIsAddDataSourceOpen(true)}>Switch DATASOURCE</Button>
+                                <Button type="primary" style={{margin:'0 5px',backgroundColor:"orange"}} onClick={() => SetIsSwitchDataSourceOpen(true)}>Switch DATASOURCE</Button>
                             </div>
                         </SpaceBetween>
                     )}
                     <div style={{marginTop: '20px'}}>
                         {   
-                                <Spin spinning={loading}>
+                                <Spin spinning={loading} tip={"请选择表格"}>
                                     {switchView()}
                                 </Spin>
                         }
@@ -497,11 +505,14 @@ const DatabaseManager = () => {
                     </Menu>
             </Drawer>
             <AddDataSourceModal
-        visible={isAddDataSourceOpen}
-        onCancel={() => SetIsAddDataSourceOpen(false)}
-        onAdd={handleAddDataSource}
-      />
-
+                visible={isAddDataSourceOpen}
+                onCancel={() => SetIsAddDataSourceOpen(false)}
+                onAdd={handleAddDataSource}
+            />
+            <GetDataSourceModal
+                visible={isSwitchDataSourceOpen}
+                onCancel={handleSwitchDataSourceModal}
+            />
         </Layout>
     );
 }

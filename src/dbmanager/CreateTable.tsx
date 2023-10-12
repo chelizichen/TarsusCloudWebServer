@@ -113,7 +113,7 @@ const CreateTable = () => {
             return null;
         }
 
-        let sql = `CREATE TABLE ${prefix}_${tableName} ( \n`;
+        let sql = `CREATE TABLE ${tableName} ( \n`;
 
         let primary_keys = []
 

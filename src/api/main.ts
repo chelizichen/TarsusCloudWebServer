@@ -261,3 +261,18 @@ export async function resetDatabase(data){
         data
     })
 }
+
+export async function getDBRecords(){
+    return request({
+        url: "/main/db/db_records_get",
+        method: "post",
+    })
+}
+
+export async function setDBRecord(data) {
+    return request({
+        url: "/main/db/db_records_set",
+        method: "post",
+        data
+    })
+}

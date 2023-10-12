@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Input, Form, Button } from 'antd';
-import { resetDatabase } from '../api/main';
+import { Modal, Input, Form, Button, message } from 'antd';
+import {  setDBRecord } from '../api/main';
 
 const AddDataSourceModal = ({ visible, onCancel, onAdd }) => {
   const [form] = Form.useForm();
@@ -20,9 +20,13 @@ const AddDataSourceModal = ({ visible, onCancel, onAdd }) => {
       host,
       database,
       connectionLimit,
-      type:2,
     };
-    const data = resetDatabase(formData);
+    const data = setDBRecord(formData);
+    if(data.code){
+      message.error("添加数据源失败 ｜"+ data.message)
+      return
+    }
+    message.success("设置数据源成功")
     // 调用添加数据源的回调函数
     onAdd(formData);
     // 清空表单数据
