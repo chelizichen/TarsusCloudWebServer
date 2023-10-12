@@ -25,6 +25,7 @@ import ExportToExcelButton from "../dbmanager/ExportToExcelButton.tsx";
 import CreateTable from "../dbmanager/CreateTable.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
 import FlexStart from '../components/FlexStart.tsx';
+import AddDataSourceModal from '../dbmanager/AddDataSourceModal.tsx';
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -380,12 +381,24 @@ const DatabaseManager = () => {
     };
 
     const handleResetDabase = (database) =>{
-        resetDatabase({database}).then(()=>{
+        resetDatabase({database,type:1}).then(()=>{
             getDatabaseTables({}).then(res => {
                 SetTables(res.data)
             })
         })
     }
+
+    const [isAddDataSourceOpen, SetIsAddDataSourceOpen] = useState(false);
+
+    // 这个函数将在Modal的确认按钮被点击时调用
+    const handleAddDataSource = (formData) => {
+      // 在这里处理添加数据源的逻辑，formData包含了表单数据
+      console.log('Adding data source:', formData);
+  
+      // 关闭Modal
+      SetIsAddDataSourceOpen(false);
+    };
+
     return (
         <Layout style={{height: '100vh'}}>
             <Sider width={200} style={{
@@ -454,6 +467,8 @@ const DatabaseManager = () => {
                                     fileName={selectedTable}
                                 />
                                 <Button type={"primary"} style={{margin:'0 5px'}} onClick={()=>toggleDrawer(true)}>Show DATABASES</Button>
+                                <Button type="primary" onClick={() => SetIsAddDataSourceOpen(true)}>Add DATASOURCE</Button>
+                                <Button type="primary" onClick={() => SetIsAddDataSourceOpen(true)}>Switch DATASOURCE</Button>
                             </div>
                         </SpaceBetween>
                     )}
@@ -481,7 +496,13 @@ const DatabaseManager = () => {
                             )
                         })}
                     </Menu>
-                </Drawer>
+            </Drawer>
+            <AddDataSourceModal
+        visible={isAddDataSourceOpen}
+        onCancel={() => SetIsAddDataSourceOpen(false)}
+        onAdd={handleAddDataSource}
+      />
+
         </Layout>
     );
 }
