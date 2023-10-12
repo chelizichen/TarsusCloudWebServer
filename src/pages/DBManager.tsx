@@ -1,5 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {RadiusUprightOutlined, TableOutlined, ReadOutlined} from '@ant-design/icons';
+import {
+    RadiusUprightOutlined,
+    TableOutlined,
+    ReadOutlined,
+    CheckCircleOutlined,
+    CopyrightCircleFilled, CopyFilled
+} from '@ant-design/icons';
 import {
     Layout,
     Menu,
@@ -134,8 +140,9 @@ const DatabaseManager = () => {
 
     const save = async (key: any) => {
         try {
+            // debugger;
             const row = (await form.validateFields()) as any;
-            const newData = [...tableDatas];
+            let newData = [...tableDatas];
             // id必须唯一，给UID的理由是确定行
             const index = newData.findIndex((item) => item[KeyField] === form.getFieldValue(KeyField));
             if (index > -1) {
@@ -152,7 +159,6 @@ const DatabaseManager = () => {
                     }
                 }
                 const data = await saveTableData(selectedTable, body)
-                console.log(data)
                 // 合并
                 newData.splice(index, 1, mergeItem);
                 SetTableDatas(newData);
@@ -162,14 +168,18 @@ const DatabaseManager = () => {
                     type: 0,
                     data: row,
                 }
-                delete row[KeyField]
                 const data = await saveTableData(selectedTable, body)
+                if(!row[KeyField]){
+                    row[KeyField] = data.data.insertId
+                }
                 newData.push(row);
+                newData = newData.filter(item=>item[KeyField] !== editingKey)
                 SetTableDatas(newData);
                 setEditingKey('');
             }
+            message.success("保存成功")
         } catch (errInfo) {
-            console.log('Validate Failed:', errInfo);
+           message.error("保存数据失败 | " + errInfo)
         }
     };
 
@@ -296,10 +306,10 @@ const DatabaseManager = () => {
         if (viewMode === 'DATA') {
             return (<div>
                 <FlexStart>
-                    <Button onClick={handleRecordAdd} type="primary" style={{margin: '10px'}}>
-                        Add a row
+                    <Button onClick={handleRecordAdd} type="primary" style={{margin: '0 5px'}}>
+                        Add a Record
                     </Button>
-                    <Button onClick={Refresh} type="primary" style={{margin: '10px'}} icon={<ReadOutlined/>}>
+                    <Button onClick={Refresh} type="primary" style={{margin: '0 5px'}}>
                         Refresh
                     </Button>
                 </FlexStart>
@@ -454,16 +464,16 @@ const DatabaseManager = () => {
                                 </div>
                                 <div>
                                     <Popconfirm
-                                        placement="topRight"
-                                        title={'[table] ' + table}
+                                        placement="right"
+                                        title={'table [' + table + ']'}
+                                        icon={<CopyFilled/>}
                                         description={
-                                            <div>
-                                                <Button style={{margin: "5px"}}>复制表</Button>
-                                                <Button style={{margin: "5px"}}>复制表+数据</Button>
-                                            </div>
+                                            <Menu>
+                                                <Menu.Item>复制表</Menu.Item>
+                                                <Menu.Item>复制表+数据</Menu.Item>
+                                            </Menu>
                                         }
-                                        okText="Yes"
-                                        cancelText="No"
+                                        showCancel={false}
                                     >
                                         <TableOutlined></TableOutlined>
                                     </Popconfirm>
