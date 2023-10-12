@@ -458,17 +458,16 @@ const DatabaseManager = () => {
                                 <Button type={"dashed"} onClick={() => PreviewCreate()} style={{marginLeft: "10px"}}>
                                     PREVIEW
                                 </Button>
-                               
-                            </div>
-                            <div>
                                 <ExportToExcelButton
                                     dataSource={tableDatas}
                                     columns={[...mergedColumns, OperateColumn]}
                                     fileName={selectedTable}
                                 />
+                            </div>
+                            <div>
                                 <Button type={"primary"} style={{margin:'0 5px'}} onClick={()=>toggleDrawer(true)}>Show DATABASES</Button>
-                                <Button type="primary" onClick={() => SetIsAddDataSourceOpen(true)}>Add DATASOURCE</Button>
-                                <Button type="primary" onClick={() => SetIsAddDataSourceOpen(true)}>Switch DATASOURCE</Button>
+                                <Button type="primary" style={{margin:'0 5px',backgroundColor:'green'}} onClick={() => SetIsAddDataSourceOpen(true)}>Add DATASOURCE</Button>
+                                <Button type="primary" style={{margin:'0 5px',backgroundColor:"orange"}} onClick={() => SetIsAddDataSourceOpen(true)}>Switch DATASOURCE</Button>
                             </div>
                         </SpaceBetween>
                     )}
