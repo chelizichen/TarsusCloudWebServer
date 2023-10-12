@@ -26,7 +26,7 @@ const AddDataSourceModal = ({ visible, onCancel, onAdd }) => {
       message.error("添加数据源失败 ｜"+ data.message)
       return
     }
-    message.success("设置数据源成功")
+    message.success("添加数据源成功")
     // 调用添加数据源的回调函数
     onAdd(formData);
     // 清空表单数据
