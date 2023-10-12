@@ -8,7 +8,7 @@ import {
     DashOutlined,
     PlaySquareOutlined,
     BoxPlotTwoTone,
-    TrademarkCircleOutlined
+    TrademarkCircleOutlined, DatabaseOutlined
 } from '@ant-design/icons';
 import {Routes, Route, Link, useLocation, useNavigate} from 'react-router-dom';
 import UserDashboard from '../pages/UserDashBoard';
@@ -68,6 +68,7 @@ const RouterComponent = () => {
                     <Menu.Item key="4" icon={<HomeOutlined />}> <Link to="/tarsuscloud/login">Login</Link></Menu.Item>
                     <Menu.Item key="5" icon={<BoxPlotTwoTone />}> <Link to="/tarsuscloud/lowcode">LowCode</Link></Menu.Item>
                     <Menu.Item key="6" icon={<TrademarkCircleOutlined />}> <Link to="/tarsuscloud/test">Test</Link></Menu.Item>
+                    <Menu.Item key="7" icon={<DatabaseOutlined />}> <Link to="/tarsuscloud/database">DataBase</Link></Menu.Item>
                 </Menu>
             </Header>
             <Content style={{ padding: padd }}>

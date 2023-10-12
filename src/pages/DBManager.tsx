@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {RadiusUprightOutlined, TableOutlined,ReadOutlined } from '@ant-design/icons';
+import {RadiusUprightOutlined, TableOutlined, ReadOutlined} from '@ant-design/icons';
 import {
     Layout,
     Menu,
@@ -16,7 +16,15 @@ import {
     Drawer,
     Spin
 } from 'antd';
-import {deleteTableData, getDatabaseTables, getTableDatas, getTableDetail, resetDatabase, saveTableData, showDatabases} from "../api/main.ts";
+import {
+    deleteTableData,
+    getDatabaseTables,
+    getTableDatas,
+    getTableDetail,
+    resetDatabase,
+    saveTableData,
+    showDatabases
+} from "../api/main.ts";
 import lodash from 'lodash'
 import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from 'moment';
@@ -171,10 +179,19 @@ const DatabaseManager = () => {
     };
 
 
-    useEffect(() => {
+    const InitDatabaseTables = () => {
         getDatabaseTables({}).then(res => {
+            if (res.code) {
+                message.error("初始化数据源失败 |" + res.message)
+                SetTables([])
+                return
+            }
             SetTables(res.data)
         })
+    }
+
+    useEffect(() => {
+        InitDatabaseTables()
     }, []);
 
     const rowSelection = {
@@ -212,9 +229,9 @@ const DatabaseManager = () => {
                 }
             })
             SetTableDatas(res.data)
-            setTimeout(()=>{
+            setTimeout(() => {
                 setLoading(false)
-            },500)
+            }, 500)
         })
     }
 
@@ -354,10 +371,15 @@ const DatabaseManager = () => {
     }
 
     const [open, setOpen] = useState(false);
-    const [database,setDatabases] = useState([])
+    const [database, setDatabases] = useState([])
     const toggleDrawer = async (bool) => {
-        if(bool === true){
-            const data = await showDatabases() 
+        if (bool === true) {
+            const data = await showDatabases()
+            if (data.code) {
+                message.error("初始化数据库失败 |" + data.message)
+                setDatabases([])
+                return
+            }
             setDatabases(data.data)
         }
         setOpen(bool);
@@ -365,27 +387,25 @@ const DatabaseManager = () => {
 
     const drawerStyles = {
         mask: {
-          backdropFilter: 'blur(10px)',
+            backdropFilter: 'blur(10px)',
         },
         content: {
-          boxShadow: '-10px 0 10px #666',
+            boxShadow: '-10px 0 10px #666',
         },
         header: {
-          borderBottom: `1px solid red`,
+            borderBottom: `1px solid red`,
         },
         body: {
-          fontSize: 'large',
+            fontSize: 'large',
         },
         footer: {
-          borderTop: `1px solid gray`,
+            borderTop: `1px solid gray`,
         },
     };
 
-    const handleResetDabase = (database) =>{
-        resetDatabase({database,type:1}).then(()=>{
-            getDatabaseTables({}).then(res => {
-                SetTables(res.data)
-            })
+    const handleResetDabase = (database) => {
+        resetDatabase({database, type: 1}).then(() => {
+            InitDatabaseTables()
         })
     }
 
@@ -393,17 +413,15 @@ const DatabaseManager = () => {
     const [isSwitchDataSourceOpen, SetIsSwitchDataSourceOpen] = useState(false)
     // 这个函数将在Modal的确认按钮被点击时调用
     const handleAddDataSource = (formData) => {
-      // 在这里处理添加数据源的逻辑，formData包含了表单数据
-      console.log('Adding data source:', formData);
-  
-      // 关闭Modal
-      SetIsAddDataSourceOpen(false);
+        // 在这里处理添加数据源的逻辑，formData包含了表单数据
+        console.log('Adding data source:', formData);
+
+        // 关闭Modal
+        SetIsAddDataSourceOpen(false);
     };
 
-    const handleSwitchDataSourceModal = ()=>{
-        getDatabaseTables({}).then(res => {
-            SetTables(res.data)
-        })
+    const handleSwitchDataSourceModal = () => {
+        InitDatabaseTables()
         SetIsSwitchDataSourceOpen(false)
     }
 
@@ -413,29 +431,35 @@ const DatabaseManager = () => {
                 backgroundColor: 'white',
                 overflow: 'auto',
                 height: '100vh',
-        }}>
+            }}>
                 <Menu mode="inline" defaultSelectedKeys={['1']}>
                     <Menu.Item>
                         <Button type={"link"} onClick={() => setViewMode("CREATETABLE")}> Create Table </Button>
                     </Menu.Item>
-                    {myTables.map((table,index) => (
+                    {myTables.map((table, index) => (
 
                         <Menu.Item key={table} onClick={() => {
                             setSelectedTable(table)
                             setViewMode("DATA")
                         }}>
                             <SpaceBetween>
-                                <div style={{width:"80%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",wordWrap:"break-word"}}>
+                                <div style={{
+                                    width: "80%",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                    wordWrap: "break-word"
+                                }}>
                                     {table}
                                 </div>
                                 <div>
                                     <Popconfirm
                                         placement="topRight"
-                                        title={'[table] '+ table}
+                                        title={'[table] ' + table}
                                         description={
                                             <div>
-                                                <Button style={{margin:"5px"}}>复制表</Button>
-                                                <Button style={{margin:"5px"}}>复制表+数据</Button>
+                                                <Button style={{margin: "5px"}}>复制表</Button>
+                                                <Button style={{margin: "5px"}}>复制表+数据</Button>
                                             </div>
                                         }
                                         okText="Yes"
@@ -473,36 +497,39 @@ const DatabaseManager = () => {
                                 />
                             </div>
                             <div>
-                                <Button type={"primary"} style={{margin:'0 5px'}} onClick={()=>toggleDrawer(true)}>Show DATABASES</Button>
-                                <Button type="primary" style={{margin:'0 5px',backgroundColor:'green'}} onClick={() => SetIsAddDataSourceOpen(true)}>Add DATASOURCE</Button>
-                                <Button type="primary" style={{margin:'0 5px',backgroundColor:"orange"}} onClick={() => SetIsSwitchDataSourceOpen(true)}>Switch DATASOURCE</Button>
+                                <Button type={"primary"} style={{margin: '0 5px'}} onClick={() => toggleDrawer(true)}>Show
+                                    DATABASES</Button>
+                                <Button type="primary" style={{margin: '0 5px', backgroundColor: 'green'}}
+                                        onClick={() => SetIsAddDataSourceOpen(true)}>Add DATASOURCE</Button>
+                                <Button type="primary" style={{margin: '0 5px', backgroundColor: "orange"}}
+                                        onClick={() => SetIsSwitchDataSourceOpen(true)}>Switch DATASOURCE</Button>
                             </div>
                         </SpaceBetween>
                     )}
                     <div style={{marginTop: '20px'}}>
-                        {   
-                                <Spin spinning={loading} tip={"请选择表格"}>
-                                    {switchView()}
-                                </Spin>
+                        {
+                            <Spin spinning={loading} tip={"请选择表格"}>
+                                {switchView()}
+                            </Spin>
                         }
                     </div>
                 </Content>
             </Layout>
             <Drawer
-                    title="Databases"
-                    placement="right"
-                    footer="Footer"
-                    onClose={() => toggleDrawer(false)}
-                    open={open}
-                    styles={drawerStyles}
-                >
-                    <Menu>
-                        {database.map((item,index)=>{
-                            return(
-                                <Menu.Item key={item+index} onClick={()=>handleResetDabase(item)}> { item }</Menu.Item>
-                            )
-                        })}
-                    </Menu>
+                title="Databases"
+                placement="right"
+                footer="Footer"
+                onClose={() => toggleDrawer(false)}
+                open={open}
+                styles={drawerStyles}
+            >
+                <Menu>
+                    {database.map((item, index) => {
+                        return (
+                            <Menu.Item key={item + index} onClick={() => handleResetDabase(item)}> {item}</Menu.Item>
+                        )
+                    })}
+                </Menu>
             </Drawer>
             <AddDataSourceModal
                 visible={isAddDataSourceOpen}
