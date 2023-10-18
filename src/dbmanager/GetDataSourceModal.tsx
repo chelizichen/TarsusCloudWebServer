@@ -3,7 +3,7 @@ import { Modal, Input, Form, Button, Menu, message } from 'antd';
 import {  getDBRecords, resetDatabase } from '../api/main';
 import SpaceBetween from '../components/SpaceBetween';
 
-const GetDataSourceModal = ({ visible, onCancel }) => {
+const GetDataSourceModal = ({ visible, onCancel,onSet }) => {
   useEffect(()=>{
     if(!visible){
       return;
@@ -27,6 +27,7 @@ const GetDataSourceModal = ({ visible, onCancel }) => {
         message.error("修改数据源失败 ｜"+ data.message)
         return
     }
+    onSet(record.host)
     message.success("修改数据源成功")
     onCancel()
   }

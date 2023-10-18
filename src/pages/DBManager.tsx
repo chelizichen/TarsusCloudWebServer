@@ -24,7 +24,7 @@ import {
 } from 'antd';
 import {
     deleteTableData,
-    getDatabaseTables,
+    getDatabaseTables, getDBInfo,
     getTableDatas,
     getTableDetail,
     resetDatabase,
@@ -41,6 +41,7 @@ import SpaceBetween from "../components/SpaceBetween.tsx";
 import FlexStart from '../components/FlexStart.tsx';
 import AddDataSourceModal from '../dbmanager/AddDataSourceModal.tsx';
 import GetDataSourceModal from '../dbmanager/GetDataSourceModal.tsx';
+import QuerySqlModal from "../dbmanager/Query.tsx";
 
 const {Title} = Typography;
 const {Sider, Content} = Layout;
@@ -201,6 +202,11 @@ const DatabaseManager = () => {
     }
 
     useEffect(() => {
+        getDBInfo().then(res=>{
+            SetDBSource(res.data.host)
+            SetCurrentDB(res.data.database)
+            console.log(res)
+        })
         InitDatabaseTables()
     }, []);
 
@@ -311,6 +317,9 @@ const DatabaseManager = () => {
                     </Button>
                     <Button onClick={Refresh} type="primary" style={{margin: '0 5px'}}>
                         Refresh
+                    </Button>、
+                    <Button onClick={()=>SetQuerySqlVisible(true)} type="primary" style={{margin: '0 5px'}}>
+                        Query
                     </Button>
                 </FlexStart>
                 <Form form={form} component={false}>
@@ -417,6 +426,7 @@ const DatabaseManager = () => {
     };
 
     const handleResetDabase = (database) => {
+        SetCurrentDB(database);
         resetDatabase({database, type: 1}).then(() => {
             InitDatabaseTables()
         })
@@ -437,6 +447,10 @@ const DatabaseManager = () => {
         InitDatabaseTables()
         SetIsSwitchDataSourceOpen(false)
     }
+
+    const [isQuerySqlVisible,SetQuerySqlVisible] = useState(false);
+    const [DBSource,SetDBSource] = useState('');
+    const [currentDB,SetCurrentDB] = useState('')
 
     return (
         <Layout style={{height: '100vh'}}>
@@ -552,7 +566,9 @@ const DatabaseManager = () => {
             <GetDataSourceModal
                 visible={isSwitchDataSourceOpen}
                 onCancel={handleSwitchDataSourceModal}
+                onSet={(currentDB)=>SetDBSource(currentDB)}
             />
+            <QuerySqlModal visible={isQuerySqlVisible} onQuery={()=>{}} onCancel={() => SetQuerySqlVisible(false)} source={DBSource} database={currentDB}></QuerySqlModal>
         </Layout>
     );
 }

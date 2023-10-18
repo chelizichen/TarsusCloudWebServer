@@ -276,3 +276,18 @@ export async function setDBRecord(data) {
         data
     })
 }
+
+export async function addQuery(data) {
+    return request({
+        url: "/main/db/add_query",
+        method: "post",
+        data
+    })
+}
+
+export async function getDBInfo() {
+    return request({
+        url: "/main/db/get_info",
+        method: "post",
+    })
+}
