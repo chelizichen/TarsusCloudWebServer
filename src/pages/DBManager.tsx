@@ -568,7 +568,7 @@ const DatabaseManager = () => {
                 onCancel={handleSwitchDataSourceModal}
                 onSet={(currentDB)=>SetDBSource(currentDB)}
             />
-            <QuerySqlModal visible={isQuerySqlVisible} onQuery={()=>{}} onCancel={() => SetQuerySqlVisible(false)} source={DBSource} database={currentDB}></QuerySqlModal>
+            <QuerySqlModal visible={isQuerySqlVisible} onCancel={() => SetQuerySqlVisible(false)} source={DBSource} database={currentDB}></QuerySqlModal>
         </Layout>
     );
 }
