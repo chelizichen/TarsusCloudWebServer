@@ -483,7 +483,7 @@ const DatabaseManager = () => {
                             rowClassName="editable-row"
                             bordered
                             virtual
-                            scroll={{ x: 1000, y: 700 }}
+                            scroll={{ x: 2000, y: 750 }}
                             pagination={{
                                 showTotal: (total, range) =>
                                     `${range[0]}-${range[1]} of ${total} items`,
