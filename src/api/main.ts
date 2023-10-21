@@ -209,6 +209,15 @@ export async function getTableDatas(tableName:string,config:SelectConfig) {
     })
 }
 
+export async function getTableCount(tableName:string) {
+    const params = {tableName};
+    return request({
+        url: "/main/db/get_count",
+        method: "post",
+        params,
+    })
+}
+
 
 export async function getTableDetail(tableName:string) {
     const params = {tableName};

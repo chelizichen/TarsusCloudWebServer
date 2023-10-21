@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {
     RadiusUprightOutlined,
     TableOutlined,
@@ -24,7 +24,7 @@ import {
 import {
     deleteTableData,
     getDatabaseTables,
-    getDBInfo,
+    getDBInfo, getTableCount,
     getTableDatas,
     getTableDetail,
     resetDatabase,
@@ -32,9 +32,9 @@ import {
     showDatabases,
 } from "../api/main.ts";
 import lodash from "lodash";
-import { EditableCell } from "../dbmanager/EditableCell.tsx";
+import {EditableCell} from "../dbmanager/EditableCell.tsx";
 import moment from "moment";
-import { uid } from "uid";
+import {uid} from "uid";
 import ExportToExcelButton from "../dbmanager/ExportToExcelButton.tsx";
 import CreateTable from "../dbmanager/CreateTable.tsx";
 import SpaceBetween from "../components/SpaceBetween.tsx";
@@ -42,11 +42,12 @@ import FlexStart from "../components/FlexStart.tsx";
 import AddDataSourceModal from "../dbmanager/AddDataSourceModal.tsx";
 import GetDataSourceModal from "../dbmanager/GetDataSourceModal.tsx";
 import QuerySqlModal from "../dbmanager/Query.tsx";
-import { ColumnType, FilterConfirmProps } from "antd/es/table/interface";
+import {ColumnType, FilterConfirmProps} from "antd/es/table/interface";
 import Highlighter from 'react-highlight-words';
-import type { InputRef } from 'antd';
-const { Title } = Typography;
-const { Sider, Content } = Layout;
+import type {InputRef} from 'antd';
+
+const {Title} = Typography;
+const {Sider, Content} = Layout;
 
 const DatabaseManager = () => {
     const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ const DatabaseManager = () => {
                 <span>
                     <Typography.Link
                         onClick={() => save(record[KeyField])}
-                        style={{ marginRight: 8 }}
+                        style={{marginRight: 8}}
                     >
                         Save
                     </Typography.Link>
@@ -103,14 +104,14 @@ const DatabaseManager = () => {
                     <Typography.Link
                         disabled={editingKey !== ""}
                         onClick={() => edit(record)}
-                        style={{ marginRight: "10px" }}
+                        style={{marginRight: "10px"}}
                     >
                         Edit
                     </Typography.Link>
                     <Typography.Link
                         disabled={editingKey !== ""}
                         onClick={() => deleteRecord(record)}
-                        style={{ color: "red" }}
+                        style={{color: "red"}}
                     >
                         Delete
                     </Typography.Link>
@@ -127,7 +128,7 @@ const DatabaseManager = () => {
 
     const edit = (record: any & { key: React.Key }) => {
         console.log("PRIMARY-KEY", record[KeyField]);
-        form.setFieldsValue({ ...record });
+        form.setFieldsValue({...record});
         setEditingKey(record[KeyField]);
     };
 
@@ -231,81 +232,81 @@ const DatabaseManager = () => {
         setSearchText('');
     };
     const getColumnSearchProps = (dataIndex: any): ColumnType<any> => ({
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-          <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-            <Input
-              ref={searchInput}
-              placeholder={`Search ${dataIndex}`}
-              value={selectedKeys[0]}
-              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-              onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
-              style={{ marginBottom: 8, display: 'block' }}
-            />
-            <Space>
-              <Button
-                type="primary"
-                onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
-                icon={<SearchOutlined />}
-                size="small"
-                style={{ width: 90 }}
-              >
-                Search
-              </Button>
-              <Button
-                onClick={() => clearFilters && handleReset(clearFilters)}
-                size="small"
-                style={{ width: 90 }}
-              >
-                Reset
-              </Button>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => {
-                  confirm({ closeDropdown: false });
-                  setSearchText((selectedKeys as string[])[0]);
-                  setSearchedColumn(dataIndex);
-                }}
-              >
-                Filter
-              </Button>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => {
-                  close();
-                }}
-              >
-                close
-              </Button>
-            </Space>
-          </div>
+        filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters, close}) => (
+            <div style={{padding: 8}} onKeyDown={(e) => e.stopPropagation()}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+                    style={{marginBottom: 8, display: 'block'}}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+                        icon={<SearchOutlined/>}
+                        size="small"
+                        style={{width: 90}}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() => clearFilters && handleReset(clearFilters)}
+                        size="small"
+                        style={{width: 90}}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({closeDropdown: false});
+                            setSearchText((selectedKeys as string[])[0]);
+                            setSearchedColumn(dataIndex);
+                        }}
+                    >
+                        Filter
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            close();
+                        }}
+                    >
+                        close
+                    </Button>
+                </Space>
+            </div>
         ),
         filterIcon: (filtered: boolean) => (
-          <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+            <SearchOutlined style={{color: filtered ? '#1677ff' : undefined}}/>
         ),
         onFilter: (value, record) =>
-          record[dataIndex]
-            .toString()
-            .toLowerCase()
-            .includes((value as string).toLowerCase()),
+            record[dataIndex]
+                .toString()
+                .toLowerCase()
+                .includes((value as string).toLowerCase()),
         onFilterDropdownOpenChange: (visible) => {
-          if (visible) {
-            setTimeout(() => searchInput.current?.select(), 100);
-          }
+            if (visible) {
+                setTimeout(() => searchInput.current?.select(), 100);
+            }
         },
         render: (text) =>
-          searchedColumn === dataIndex ? (
-            <Highlighter
-              highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-              searchWords={[searchText]}
-              autoEscape
-              textToHighlight={text ? text.toString() : ''}
-            />
-          ) : (
-            text
-          ),
-      });
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{backgroundColor: '#ffc069', padding: 0}}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    });
 
     const InitDatabaseTables = () => {
         getDatabaseTables({}).then((res) => {
@@ -350,7 +351,7 @@ const DatabaseManager = () => {
         let key = uid();
         newData[KeyField] = key;
         setEditingKey(key);
-        form.setFieldsValue({ ...newData });
+        form.setFieldsValue({...newData});
         SetTableDatas([newData, ...tableDatas]);
     };
 
@@ -417,6 +418,10 @@ const DatabaseManager = () => {
                         SetTableDatas(res.data);
                         setLoading(false);
                     });
+                    getTableCount(selectedTable).then(res => {
+                        SetRecordTotal(res.data.total)
+                        console.log(res)
+                    })
                 });
         }
     }, [selectedTable]);
@@ -442,6 +447,7 @@ const DatabaseManager = () => {
             }),
         };
     });
+    const [tableRecordTotal,SetRecordTotal] = useState(0);
 
     const switchView = () => {
         if (viewMode === "DATA") {
@@ -451,14 +457,14 @@ const DatabaseManager = () => {
                         <Button
                             onClick={handleRecordAdd}
                             type="primary"
-                            style={{ margin: "0 5px" }}
+                            style={{margin: "0 5px"}}
                         >
                             Add a Record
                         </Button>
                         <Button
                             onClick={Refresh}
                             type="primary"
-                            style={{ margin: "0 5px" }}
+                            style={{margin: "0 5px"}}
                         >
                             Refresh
                         </Button>
@@ -466,7 +472,7 @@ const DatabaseManager = () => {
                         <Button
                             onClick={() => SetQuerySqlVisible(true)}
                             type="primary"
-                            style={{ margin: "0 5px" }}
+                            style={{margin: "0 5px"}}
                         >
                             Query
                         </Button>
@@ -483,11 +489,12 @@ const DatabaseManager = () => {
                             rowClassName="editable-row"
                             bordered
                             virtual
-                            scroll={{ x: 2000, y: 750 }}
+                            scroll={{x: 2000, y: 750}}
                             pagination={{
-                                showTotal: (total, range) =>
-                                    `${range[0]}-${range[1]} of ${total} items`,
                                 pageSize: 1000,
+                                total:tableRecordTotal,
+                                showTotal:(total) => `共 ${total} 条`,
+                                current:1,
                             }}
                         />
                     </Form>
@@ -497,7 +504,7 @@ const DatabaseManager = () => {
         if (viewMode === "STRUCT") {
             return (
                 <div>
-                    <Table dataSource={fieldColumnsData} columns={fieldsColumns} />
+                    <Table dataSource={fieldColumnsData} columns={fieldsColumns}/>
                 </div>
             );
         }
@@ -535,11 +542,11 @@ const DatabaseManager = () => {
 
         Modal.confirm({
             title: "CREATE SQL",
-            content: <Input.TextArea value={sql} style={{ height: "300px" }} />,
+            content: <Input.TextArea value={sql} style={{height: "300px"}}/>,
             cancelText: "取消",
             closable: true,
             width: 600,
-            icon: <RadiusUprightOutlined />,
+            icon: <RadiusUprightOutlined/>,
         });
     };
 
@@ -578,7 +585,7 @@ const DatabaseManager = () => {
 
     const handleResetDabase = (database) => {
         SetCurrentDB(database);
-        resetDatabase({ database, type: 1 }).then(() => {
+        resetDatabase({database, type: 1}).then(() => {
             InitDatabaseTables();
         });
     };
@@ -604,7 +611,7 @@ const DatabaseManager = () => {
     const [currentDB, SetCurrentDB] = useState("");
 
     return (
-        <Layout style={{ height: "100vh" }}>
+        <Layout style={{height: "100vh"}}>
             <Sider
                 width={200}
                 style={{
@@ -644,7 +651,7 @@ const DatabaseManager = () => {
                                     <Popconfirm
                                         placement="right"
                                         title={"table [" + table + "]"}
-                                        icon={<CopyFilled />}
+                                        icon={<CopyFilled/>}
                                         description={
                                             <Menu>
                                                 <Menu.Item>复制表</Menu.Item>
@@ -662,7 +669,7 @@ const DatabaseManager = () => {
                 </Menu>
             </Sider>
             <Layout>
-                <Content style={{ padding: "20px" }}>
+                <Content style={{padding: "20px"}}>
                     {viewMode != "CREATETABLE" && (
                         <SpaceBetween>
                             <div>
@@ -682,7 +689,7 @@ const DatabaseManager = () => {
                                 <Button
                                     type={"dashed"}
                                     onClick={() => PreviewCreate()}
-                                    style={{ marginLeft: "10px" }}
+                                    style={{marginLeft: "10px"}}
                                 >
                                     PREVIEW
                                 </Button>
@@ -695,21 +702,21 @@ const DatabaseManager = () => {
                             <div>
                                 <Button
                                     type={"primary"}
-                                    style={{ margin: "0 5px" }}
+                                    style={{margin: "0 5px"}}
                                     onClick={() => toggleDrawer(true)}
                                 >
                                     Show DATABASES
                                 </Button>
                                 <Button
                                     type="primary"
-                                    style={{ margin: "0 5px", backgroundColor: "green" }}
+                                    style={{margin: "0 5px", backgroundColor: "green"}}
                                     onClick={() => SetIsAddDataSourceOpen(true)}
                                 >
                                     Add DATASOURCE
                                 </Button>
                                 <Button
                                     type="primary"
-                                    style={{ margin: "0 5px", backgroundColor: "orange" }}
+                                    style={{margin: "0 5px", backgroundColor: "orange"}}
                                     onClick={() => SetIsSwitchDataSourceOpen(true)}
                                 >
                                     Switch DATASOURCE
@@ -717,7 +724,7 @@ const DatabaseManager = () => {
                             </div>
                         </SpaceBetween>
                     )}
-                    <div style={{ marginTop: "20px" }}>
+                    <div style={{marginTop: "20px"}}>
                         {
                             <Spin spinning={loading} tip={"请选择表格"}>
                                 {switchView()}
